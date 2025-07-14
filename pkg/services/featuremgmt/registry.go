@@ -1732,6 +1732,14 @@ var (
 			FrontendOnly:      true,
 			Expression:        "false",
 		},
+		{
+			Name:              "unifiedStorageSearchDualReaderEnabled",
+			Description:       "Enable dual reader for unified storage search",
+			Stage:             FeatureStageExperimental,
+			Owner:             grafanaSearchAndStorageSquad,
+			HideFromAdminPage: true,
+			HideFromDocs:      true,
+		},
 	}
 )
 

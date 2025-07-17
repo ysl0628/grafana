@@ -162,7 +162,7 @@ function getStyles(theme: GrafanaTheme2, headerHeight: number) {
       boxSizing: 'border-box',
       flexDirection: 'column',
       // without top padding the fixed controls headers is rendered over the selection outline.
-      padding: theme.spacing(0.125, 2, 2, 2),
+      padding: theme.spacing(2),
     }),
     bodyEditing: css({
       position: 'absolute',
@@ -188,6 +188,7 @@ function getStyles(theme: GrafanaTheme2, headerHeight: number) {
     }),
     controlsWrapperSticky: css({
       [theme.breakpoints.up('md')]: {
+        display: 'none',
         position: 'sticky',
         zIndex: theme.zIndex.activePanel,
         background: theme.colors.background.canvas,

@@ -10,6 +10,8 @@ import { ErrorBoundaryAlert, getDragStyles, LinkButton, useStyles2 } from '@graf
 import { useGrafana } from 'app/core/context/GrafanaContext';
 import { useMediaQueryMinWidth } from 'app/core/hooks/useMediaQueryMinWidth';
 import store from 'app/core/store';
+import { AiAssistantSidebarContainer } from 'app/features/ai-assistant/components/AiAssistantSidebarContainer';
+import { useAiAssistantSidebar } from 'app/features/ai-assistant/providers/AiAssistantProvider';
 import { CommandPalette } from 'app/features/commandPalette/CommandPalette';
 import { ScopesDashboards } from 'app/features/scopes/dashboards/ScopesDashboards';
 
@@ -37,6 +39,7 @@ export function AppChrome({ children }: Props) {
     extensionSidebarWidth,
     setExtensionSidebarWidth,
   } = useExtensionSidebarContext();
+  const { state: aiAssistantState } = useAiAssistantSidebar();
   const state = chrome.useState();
   const scopes = useScopes();
 
@@ -48,7 +51,6 @@ export function AppChrome({ children }: Props) {
   const headerLevels = useChromeHeaderLevels();
   const headerHeight = headerLevels * getChromeHeaderLevelHeight();
   const styles = useStyles2(getStyles, headerHeight);
-  const contentSizeStyles = useStyles2(getContentSizeStyles, extensionSidebarWidth);
   const dragStyles = useStyles2(getDragStyles);
 
   useResponsiveDockedMegaMenu(chrome);
@@ -57,7 +59,7 @@ export function AppChrome({ children }: Props) {
   const contentClass = cx({
     [styles.content]: true,
     [styles.contentChromeless]: state.chromeless,
-    [styles.contentWithSidebar]: isExtensionSidebarOpen && !state.chromeless,
+    [styles.contentWithSidebar]: (isExtensionSidebarOpen || aiAssistantState.isOpen) && !state.chromeless,
   });
 
   const handleMegaMenu = () => {
@@ -115,24 +117,23 @@ export function AppChrome({ children }: Props) {
         </>
       )}
       <div className={contentClass}>
-        <div className={cx(styles.panes, { [styles.panesWithSidebar]: isExtensionSidebarOpen })}>
-          {!state.chromeless && (
-            <div
-              className={cx(styles.scopesDashboardsContainer, {
-                [styles.scopesDashboardsContainerDocked]: menuDockedAndOpen,
-              })}
-            >
-              <ErrorBoundaryAlert>
-                <ScopesDashboards />
-              </ErrorBoundaryAlert>
-            </div>
-          )}
+        {!state.chromeless && (
+          <div
+            className={cx(styles.scopesDashboardsContainer, {
+              [styles.scopesDashboardsContainerDocked]: menuDockedAndOpen,
+            })}
+          >
+            <ErrorBoundaryAlert>
+              <ScopesDashboards />
+            </ErrorBoundaryAlert>
+          </div>
+        )}
+        <div className={cx(styles.panes, { [styles.panesWithSidebar]: isExtensionSidebarOpen || aiAssistantState.isOpen })}>
           <main
             className={cx(styles.pageContainer, {
               [styles.pageContainerMenuDocked]: menuDockedAndOpen || isScopesDashboardsOpen,
               [styles.pageContainerMenuDockedScopes]: menuDockedAndOpen && isScopesDashboardsOpen,
-              [styles.pageContainerWithSidebar]: !state.chromeless && isExtensionSidebarOpen,
-              [contentSizeStyles.contentWidth]: !state.chromeless && isExtensionSidebarOpen,
+              [styles.pageContainerWithSidebar]: !state.chromeless && (isExtensionSidebarOpen || aiAssistantState.isOpen),
             })}
             id="pageContent"
           >
@@ -151,6 +152,7 @@ export function AppChrome({ children }: Props) {
               <ExtensionSidebar />
             </Resizable>
           )}
+          {!state.chromeless && <AiAssistantSidebarContainer />}
         </div>
       </div>
       {!state.chromeless && !state.megaMenuDocked && <AppChromeMenu />}
@@ -248,6 +250,9 @@ const getStyles = (theme: GrafanaTheme2, headerHeight: number) => {
       height: '100%',
       overflow: 'hidden',
       position: 'relative',
+      display: 'flex',
+      flexDirection: 'row', // 水平排列
+      flexGrow: 1,
     }),
     pageContainerMenuDocked: css({
       paddingLeft: MENU_WIDTH,
@@ -260,11 +265,15 @@ const getStyles = (theme: GrafanaTheme2, headerHeight: number) => {
       display: 'flex',
       flexDirection: 'column',
       flexGrow: 1,
+      minWidth: 0, // 防止 flex 子元素溢出
     }),
     pageContainerWithSidebar: css({
       overflow: 'auto',
       height: '100%',
       minHeight: 0,
+      flex: '1 1 auto', // 自動調整，佔據剩餘空間
+      minWidth: 0, // 防止內容溢出
+      maxWidth: 'none', // 移除任何 maxWidth 限制
     }),
     skipLink: css({
       position: 'fixed',
@@ -288,10 +297,3 @@ const getStyles = (theme: GrafanaTheme2, headerHeight: number) => {
   };
 };
 
-const getContentSizeStyles = (_: GrafanaTheme2, extensionSidebarWidth = 0) => {
-  return {
-    contentWidth: css({
-      maxWidth: `calc(100% - ${extensionSidebarWidth}px) !important`,
-    }),
-  };
-};

@@ -1008,4 +1008,9 @@ export interface FeatureToggles {
   * @default false
   */
   foldersAppPlatformAPI?: boolean;
+  /**
+  * Enable AI Assistant feature with conversational interface
+  * @default true
+  */
+  aiAssistant?: boolean;
 }

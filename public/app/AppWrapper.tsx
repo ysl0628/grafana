@@ -16,6 +16,7 @@ import { GrafanaContext } from './core/context/GrafanaContext';
 import { GrafanaRouteWrapper } from './core/navigation/GrafanaRoute';
 import { RouteDescriptor } from './core/navigation/types';
 import { ThemeProvider } from './core/utils/ConfigProvider';
+import { AiAssistantProvider } from './features/ai-assistant/providers/AiAssistantProvider';
 import { LiveConnectionWarning } from './features/live/LiveConnectionWarning';
 import { ExtensionRegistriesProvider } from './features/plugins/extensions/ExtensionRegistriesContext';
 import { pluginExtensionRegistries } from './features/plugins/extensions/registry/setup';
@@ -107,6 +108,7 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
     const MaybeExtensionSidebarProvider = config.featureToggles.extensionSidebar
       ? ExtensionSidebarContextProvider
       : Fragment;
+    const MaybeAiAssistantProvider = config.featureToggles.aiAssistant ? AiAssistantProvider : Fragment;
 
     return (
       <Provider store={store}>
@@ -122,12 +124,14 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
                     <ScopesContextProvider>
                       <ExtensionRegistriesProvider registries={pluginExtensionRegistries}>
                         <MaybeExtensionSidebarProvider>
-                          <GlobalStylesWrapper />
-                          <div className="grafana-app">
-                            <RouterWrapper {...routerWrapperProps} />
-                            <LiveConnectionWarning />
-                            <PortalContainer />
-                          </div>
+                          <MaybeAiAssistantProvider>
+                            <GlobalStylesWrapper />
+                            <div className="grafana-app">
+                              <RouterWrapper {...routerWrapperProps} />
+                              <LiveConnectionWarning />
+                              <PortalContainer />
+                            </div>
+                          </MaybeAiAssistantProvider>
                         </MaybeExtensionSidebarProvider>
                       </ExtensionRegistriesProvider>
                     </ScopesContextProvider>

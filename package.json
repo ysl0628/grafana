@@ -264,6 +264,8 @@
     "zod": "^3.25.55"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.10.25",
+    "@assistant-ui/react-langgraph": "^0.5.9",
     "@bsull/augurs": "^0.10.0",
     "@emotion/css": "11.13.5",
     "@emotion/react": "11.14.0",

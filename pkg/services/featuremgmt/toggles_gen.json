@@ -19,6 +19,23 @@
     },
     {
       "metadata": {
+        "name": "aiAssistant",
+        "resourceVersion": "1752598933282",
+        "creationTimestamp": "2025-07-15T17:01:44Z",
+        "annotations": {
+          "grafana.app/updatedTimestamp": "2025-07-15 17:02:13.282398 +0000 UTC"
+        }
+      },
+      "spec": {
+        "description": "Enable AI Assistant feature with conversational interface",
+        "stage": "preview",
+        "codeowner": "@grafana/grafana-operator-experience-squad",
+        "frontend": true,
+        "expression": "true"
+      }
+    },
+    {
+      "metadata": {
         "name": "aiGeneratedDashboardChanges",
         "resourceVersion": "1750434297879",
         "creationTimestamp": "2024-03-05T12:01:31Z"

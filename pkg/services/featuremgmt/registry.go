@@ -1732,6 +1732,14 @@ var (
 			FrontendOnly:      true,
 			Expression:        "false",
 		},
+		{
+			Name:         "aiAssistant",
+			Description:  "Enable AI Assistant feature with conversational interface",
+			Stage:        FeatureStagePublicPreview,
+			FrontendOnly: true,
+			Owner:        grafanaOperatorExperienceSquad,
+			Expression:   "true", // enabled by default for demo
+		},
 	}
 )
 

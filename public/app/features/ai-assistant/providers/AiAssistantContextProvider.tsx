@@ -5,10 +5,8 @@ import {
   deleteThread,
   updateThreadTitle,
   updateThread,
-  sendMessage,
   getThreadList,
   shouldUseMockApi,
-  convertMessagesToLangChain,
 } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import {
@@ -160,70 +158,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
             context: thread.metadata?.grafanaContext || getCurrentGrafanaContext(),
           }));
         }
-
-        // Add fake threads for UI testing if no threads exist
-        if (threads.length === 0) {
-          const currentContext = getCurrentGrafanaContext();
-          const fakeThreads: ThreadState[] = [
-            {
-              threadId: 'thread-1',
-              title: 'Dashboard Analysis',
-              lastActivity: new Date(Date.now() - 3600000), // 1 hour ago
-              context: currentContext,
-              messages: [
-                {
-                  id: 'msg-1-1',
-                  role: 'user',
-                  content: 'Can you help me analyze the performance of my dashboard?',
-                  timestamp: new Date(Date.now() - 3600000),
-                  context: currentContext,
-                },
-                {
-                  id: 'msg-1-2',
-                  role: 'assistant',
-                  content:
-                    "I'd be happy to help you analyze your dashboard performance. Let me gather some information about your dashboard first.",
-                  timestamp: new Date(Date.now() - 3595000),
-                  context: currentContext,
-                  tools: [
-                    {
-                      id: 'tool-1-1',
-                      name: 'getDashboardInfo',
-                      parameters: { dashboardId: currentContext.dashboardId },
-                    },
-                  ],
-                },
-                {
-                  id: 'msg-1-3',
-                  role: 'tool',
-                  content: 'Dashboard loaded successfully with 8 panels and 3 data sources.',
-                  timestamp: new Date(Date.now() - 3590000),
-                  context: currentContext,
-                },
-                {
-                  id: 'msg-1-4',
-                  role: 'assistant',
-                  content:
-                    'Your dashboard has 8 panels with 3 data sources. The overall performance looks good, but I notice some potential optimization opportunities in the query patterns.',
-                  timestamp: new Date(Date.now() - 3585000),
-                  context: currentContext,
-                },
-              ],
-            },
-          ];
-
-          threads = fakeThreads;
-
-          // Set up archived thread IDs for fake threads
-          const initialArchivedIds = new Set<string>();
-          initialArchivedIds.add('thread-4');
-          initialArchivedIds.add('thread-5');
-          dispatch({ type: 'SET_THREADS', payload: threads });
-          // Set initial archived threads from fake data
-          dispatch({ type: 'SET_ARCHIVED_IDS', payload: initialArchivedIds });
-        } else {
-          dispatch({ type: 'SET_THREADS', payload: threads });
-        }
+        dispatch({ type: 'SET_THREADS', payload: threads });
 
         // Restore current thread if stored
         if (storedCurrentThread && threads.some((t) => t.threadId === storedCurrentThread)) {

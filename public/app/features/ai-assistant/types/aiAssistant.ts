@@ -6,10 +6,24 @@ import { User } from 'app/types/user';
 export interface AiAssistantMessage {
   id: string;
   role: 'user' | 'assistant' | 'system' | 'tool';
-  content: string;
+  content: Array<{
+    type: 'text' | 'tool-call' | 'image';
+    text?: string;
+    toolCallId?: string;
+    toolName?: string;
+    args?: any;
+    argsText?: string;
+    image?: string;
+  }> | string; // Allow string for backward compatibility
   timestamp: Date;
+  createdAt?: string;
   tools?: ToolCall[];
   context?: GrafanaContext;
+  // Tool message specific fields
+  toolName?: string;
+  toolCallId?: string;
+  result?: any;
+  isError?: boolean;
 }
 
 export interface GrafanaContext {

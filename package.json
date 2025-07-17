@@ -266,6 +266,7 @@
   "dependencies": {
     "@assistant-ui/react": "^0.10.25",
     "@assistant-ui/react-langgraph": "^0.5.9",
+    "@assistant-ui/react-markdown": "^0.10.6",
     "@bsull/augurs": "^0.10.0",
     "@emotion/css": "11.13.5",
     "@emotion/react": "11.14.0",
@@ -413,6 +414,7 @@
     "redux": "5.0.1",
     "redux-thunk": "3.1.0",
     "regenerator-runtime": "0.14.1",
+    "remark-gfm": "^4.0.1",
     "reselect": "5.1.1",
     "rxjs": "7.8.2",
     "selecto": "1.26.3",

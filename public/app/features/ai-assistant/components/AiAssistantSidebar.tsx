@@ -12,6 +12,7 @@ import { AiAssistantComponentProps } from '../types/aiAssistant';
 
 import { AiAssistantHistory } from './AiAssistantHistory';
 import { AiAssistantThread } from './AiAssistantThread';
+import { useThread } from '@assistant-ui/react';
 
 /**
  * AI Assistant Sidebar Component
@@ -44,17 +45,10 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
 
-  const { isLoading, error, currentThread, threads, createThread, clearError } = useAiAssistant();
-
-  // Auto-create thread on mount if none exists
-  useEffect(() => {
-    if (!currentThread && !isLoading) {
-      createThread();
-    }
-  }, [currentThread, isLoading, createThread]);
+  const { threads, isLoading, error, clearError } = useAiAssistant();
+  const currentThread = useThread();
 
   const handleNewThread = () => {
-    createThread();
     setIsHistoryOpen(false);
   };
 

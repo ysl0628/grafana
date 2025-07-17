@@ -1,15 +1,13 @@
 import { AssistantRuntimeProvider } from '@assistant-ui/react';
 import React, { useRef, ReactNode, useCallback, useEffect } from 'react';
 
-import { useLangGraphRuntime } from './runtimes/langgraph';
+import { LangChainMessage, useLangGraphRuntime } from './runtimes/langgraph';
 
-import { config, getBackendSrv, locationService } from '@grafana/runtime';
-import { useGrafana } from 'app/core/context/GrafanaContext';
-import { contextSrv } from 'app/core/core';
+import { config, locationService } from '@grafana/runtime';
 
-import { createThread, sendMessage, getThreadState, switchToThread, createNewThread, convertMessagesToLangChain } from '../services/aiAssistantApi';
+import { createThread, sendMessage, getThreadState, createNewThread } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
-import { GrafanaContext, AiAssistantMessage } from '../types/aiAssistant';
+import { useGrafanaContext } from '../utils/grafanaContext';
 
 interface AiAssistantRuntimeProviderProps {
   children: ReactNode;
@@ -34,28 +32,13 @@ export const AiAssistantRuntimeProvider: React.FC<AiAssistantRuntimeProviderProp
  * Configures and provides the LangGraph runtime with Grafana integration.
  */
 const useAiAssistantRuntime = () => {
-  const { chrome } = useGrafana();
   const threadIdRef = useRef<string | undefined>(undefined);
   const tools = getAiAssistantTools();
-
-  // Get current Grafana context
-  const getGrafanaContext = useCallback((): GrafanaContext => {
-    const location = locationService.getLocation();
-    const user = contextSrv.user;
-    const chromeState = chrome.useState();
-
-    return {
-      user,
-      path: location.pathname,
-      query: location.search,
-      dashboardId: extractDashboardId(location.pathname),
-      timeRange: chromeState.timeRange,
-    };
-  }, [chrome]);
+  const getGrafanaContext = useGrafanaContext();
 
   // Enhanced message streaming with Grafana context
   const streamMessages = useCallback(
-    async function* (messages: AiAssistantMessage[]) {
+    async function* (messages: LangChainMessage[]) {
       try {
         // Ensure we have a thread ID
         if (!threadIdRef.current) {
@@ -67,32 +50,32 @@ const useAiAssistantRuntime = () => {
         const grafanaContext = getGrafanaContext();
 
         // Convert to LangChain format
-        const langChainMessages = convertMessagesToLangChain(messages);
+        // const langChainMessages = convertMessagesToLangChain(messages);
 
         // Send messages with context using LangGraph SDK
-        const stream = await sendMessage({
+        const generator = sendMessage({
           threadId,
-          messages: langChainMessages,
-          context: grafanaContext,
-          tools,
+          messages: messages as unknown as LangChainMessage[],
         });
 
+        yield* await generator;
+
         // Stream responses
-        for await (const chunk of stream) {
-          if (chunk.event === 'messages' && chunk.data) {
-            // Convert LangChain message back to AI Assistant format
-            const message = chunk.data;
-            if (message.type === 'ai') {
-              yield {
-                id: message.id || `msg-${Date.now()}`,
-                role: 'assistant' as const,
-                content: typeof message.content === 'string' ? message.content : message.content?.[0]?.text || '',
-                timestamp: new Date(),
-                context: grafanaContext,
-              };
-            }
-          }
-        }
+        // for await (const chunk of stream) {
+        //   if (chunk.event === 'messages' && chunk.data) {
+        //     // Convert LangChain message back to AI Assistant format
+        //     const message = chunk.data;
+        //     if (message.type === 'ai') {
+        //       yield {
+        //         id: message.id || `msg-${Date.now()}`,
+        //         role: 'assistant' as const,
+        //         content: typeof message.content === 'string' ? message.content : message.content?.[0]?.text || '',
+        //         timestamp: new Date(),
+        //         context: grafanaContext,
+        //       };
+        //     }
+        //   }
+        // }
       } catch (error) {
         console.error('Error streaming messages:', error);
         throw error;
@@ -108,16 +91,19 @@ const useAiAssistantRuntime = () => {
       threadIdRef.current = externalId;
 
       // Convert LangChain messages to AI Assistant format
-      const messages = (state.values?.messages || []).map((msg: any) => ({
-        id: msg.id || `msg-${Date.now()}`,
-        role: msg.type === 'human' ? 'user' : msg.type === 'ai' ? 'assistant' : 'system',
-        content: typeof msg.content === 'string' ? msg.content : msg.content?.[0]?.text || '',
-        timestamp: new Date(),
-      }));
+      // const messages = (state.values?.messages || []).map((msg: any) => ({
+      //   id: msg.id || `msg-${Date.now()}`,
+      //   role: msg.type === 'human' ? 'user' : msg.type === 'ai' ? 'assistant' : 'system',
+      //   content: typeof msg.content === 'string' ? msg.content : msg.content?.[0]?.text || '',
+      //   timestamp: new Date(),
+      // }));
 
+      // return {
+      //   messages,
+      //   interrupts: [], // LangGraph SDK doesn't expose interrupts in the same way
       return {
-        messages,
-        interrupts: [], // LangGraph SDK doesn't expose interrupts in the same way
+        messages: (state.values as { messages?: LangChainMessage[] }).messages ?? [],
+        interrupts: state.tasks[0]?.interrupts ?? [],
       };
     } catch (error) {
       console.error('Error switching to thread:', error);
@@ -130,10 +116,6 @@ const useAiAssistantRuntime = () => {
     try {
       const response = await createNewThread();
       threadIdRef.current = response.thread_id;
-      return {
-        messages: [],
-        interrupts: [],
-      };
     } catch (error) {
       console.error('Error creating new thread:', error);
       throw error;
@@ -187,62 +169,18 @@ const useAiAssistantRuntime = () => {
 };
 
 /**
- * Extract dashboard ID from pathname
- */
-const extractDashboardId = (pathname: string): string | undefined => {
-  const dashboardMatch = pathname.match(/\/d\/([^\/]+)/);
-  return dashboardMatch ? dashboardMatch[1] : undefined;
-};
-
-/**
  * Hook to get AI Assistant runtime context
  */
 export const useAiAssistantRuntimeContext = () => {
-  const { chrome } = useGrafana();
-  const chromeState = chrome.useState();
+  const getGrafanaContext = useGrafanaContext();
+  const context = getGrafanaContext();
 
   return {
     isEnabled: !!(config.featureToggles?.extensionSidebar && config.featureToggles?.aiAssistant !== false),
-    user: contextSrv.user,
+    user: context.user,
     location: locationService.getLocation(),
-    timeRange: chromeState.timeRange,
-    dashboardId: extractDashboardId(locationService.getLocation().pathname),
-  };
-};
-
-/**
- * Development/Mock runtime provider
- *
- * For development purposes when LangGraph backend is not available.
- */
-export const MockAiAssistantRuntimeProvider: React.FC<AiAssistantRuntimeProviderProps> = ({ children }) => {
-  const mockRuntime = useMockRuntime();
-
-  return <AssistantRuntimeProvider runtime={mockRuntime}>{children}</AssistantRuntimeProvider>;
-};
-
-/**
- * Mock runtime for development
- */
-const useMockRuntime = () => {
-  const streamMessages = useCallback(async function* (messages: AiAssistantMessage[]) {
-    // Simulate streaming response
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const mockResponse = {
-      id: 'mock-response',
-      role: 'assistant' as const,
-      content: 'This is a mock response for development. The AI assistant is working correctly!',
-      timestamp: new Date(),
-    };
-
-    yield mockResponse;
-  }, []);
-
-  return {
-    stream: streamMessages,
-    onSwitchToThread: async () => ({ messages: [], interrupts: [] }),
-    onSwitchToNewThread: async () => ({ messages: [], interrupts: [] }),
+    timeRange: context.timeRange,
+    dashboardId: context.dashboardId,
   };
 };
 

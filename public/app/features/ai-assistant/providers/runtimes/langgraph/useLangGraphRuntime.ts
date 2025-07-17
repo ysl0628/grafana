@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   LangChainMessage,
   LangChainToolCall,
@@ -6,37 +6,38 @@ import type {
   OnErrorEventCallback,
   OnInfoEventCallback,
   OnMetadataEventCallback,
-} from "./types";
+} from './types';
 import {
   useExternalMessageConverter,
   useExternalStoreRuntime,
   useThread,
   useThreadListItemRuntime,
-} from "@assistant-ui/react";
-import { convertLangChainMessages } from "./convertLangChainMessages";
+} from '@assistant-ui/react';
+import { convertLangChainMessages } from './convertLangChainMessages';
 import {
   type LangGraphCommand,
   type LangGraphInterruptState,
   type LangGraphSendMessageConfig,
   type LangGraphStreamCallback,
   useLangGraphMessages,
-} from "./useLangGraphMessages";
-import type { AttachmentAdapter } from "@assistant-ui/react";
-import type { AppendMessage } from "@assistant-ui/react";
-import type { ExternalStoreAdapter } from "@assistant-ui/react";
-import type { FeedbackAdapter } from "@assistant-ui/react";
-import type { SpeechSynthesisAdapter } from "@assistant-ui/react";
-import { appendLangChainChunk } from "./appendLangChainChunk";
+} from './useLangGraphMessages';
+import type { AttachmentAdapter } from '@assistant-ui/react';
+import type { AppendMessage } from '@assistant-ui/react';
+import type { ExternalStoreAdapter } from '@assistant-ui/react';
+import type { FeedbackAdapter } from '@assistant-ui/react';
+import type { SpeechSynthesisAdapter } from '@assistant-ui/react';
+import { appendLangChainChunk } from './appendLangChainChunk';
+import useAiAssistant from 'app/features/ai-assistant/hooks/useAiAssistant';
 
 const getPendingToolCalls = (messages: LangChainMessage[]) => {
   const pendingToolCalls = new Map<string, LangChainToolCall>();
   for (const message of messages) {
-    if (message.type === "ai") {
+    if (message.type === 'ai') {
       for (const toolCall of message.tool_calls ?? []) {
         pendingToolCalls.set(toolCall.id, toolCall);
       }
     }
-    if (message.type === "tool") {
+    if (message.type === 'tool') {
       pendingToolCalls.delete(message.tool_call_id);
     }
   }
@@ -45,56 +46,41 @@ const getPendingToolCalls = (messages: LangChainMessage[]) => {
 };
 
 const getMessageContent = (msg: AppendMessage) => {
-  const allContent = [
-    ...msg.content,
-    ...(msg.attachments?.flatMap((a) => a.content) ?? []),
-  ];
+  const allContent = [...msg.content, ...(msg.attachments?.flatMap((a) => a.content) ?? [])];
   const content = allContent.map((part) => {
     const type = part.type;
     switch (type) {
-      case "text":
-        return { type: "text" as const, text: part.text };
-      case "image":
-        return { type: "image_url" as const, image_url: { url: part.image } };
+      case 'text':
+        return { type: 'text' as const, text: part.text };
+      case 'image':
+        return { type: 'image_url' as const, image_url: { url: part.image } };
 
-      case "tool-call":
-        throw new Error("Tool call appends are not supported.");
+      case 'tool-call':
+        throw new Error('Tool call appends are not supported.');
 
       default:
-        const _exhaustiveCheck: "reasoning" | "source" | "file" | "audio" =
-          type;
-        throw new Error(
-          `Unsupported append message part type: ${_exhaustiveCheck}`,
-        );
+        const _exhaustiveCheck: 'reasoning' | 'source' | 'file' | 'audio' = type;
+        throw new Error(`Unsupported append message part type: ${_exhaustiveCheck}`);
     }
   });
 
-  if (content.length === 1 && content[0]?.type === "text") {
-    return content[0].text ?? "";
+  if (content.length === 1 && content[0]?.type === 'text') {
+    return content[0].text ?? '';
   }
 
   return content;
 };
 
-const symbolLangGraphRuntimeExtras = Symbol("langgraph-runtime-extras");
+const symbolLangGraphRuntimeExtras = Symbol('langgraph-runtime-extras');
 type LangGraphRuntimeExtras = {
   [symbolLangGraphRuntimeExtras]: true;
-  send: (
-    messages: LangChainMessage[],
-    config: LangGraphSendMessageConfig,
-  ) => Promise<void>;
+  send: (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => Promise<void>;
   interrupt: LangGraphInterruptState | undefined;
 };
 
 const asLangGraphRuntimeExtras = (extras: unknown): LangGraphRuntimeExtras => {
-  if (
-    typeof extras !== "object" ||
-    extras == null ||
-    !(symbolLangGraphRuntimeExtras in extras)
-  )
-    throw new Error(
-      "This method can only be called when you are using useLangGraphRuntime",
-    );
+  if (typeof extras !== 'object' || extras == null || !(symbolLangGraphRuntimeExtras in extras))
+    throw new Error('This method can only be called when you are using useLangGraphRuntime');
 
   return extras as LangGraphRuntimeExtras;
 };
@@ -170,14 +156,7 @@ export const useLangGraphRuntime = ({
       }
     | undefined;
 }) => {
-  const {
-    interrupt,
-    setInterrupt,
-    messages,
-    sendMessage,
-    cancel,
-    setMessages,
-  } = useLangGraphMessages({
+  const { interrupt, setInterrupt, messages, sendMessage, cancel, setMessages } = useLangGraphMessages({
     appendMessage: appendLangChainChunk,
     stream,
     ...(eventHandlers && { eventHandlers }),
@@ -185,20 +164,18 @@ export const useLangGraphRuntime = ({
 
   const [isRunning, setIsRunning] = useState(false);
   const processedToolCallsRef = useRef(new Set<string>());
+  const { threads, archivedThreads } = useAiAssistant();
 
-  const handleSendMessage = async (
-    messages: LangChainMessage[],
-    config: LangGraphSendMessageConfig,
-  ) => {
+  const handleSendMessage = useCallback(async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
     try {
       setIsRunning(true);
       await sendMessage(messages, config);
     } catch (error) {
-      console.error("Error streaming messages:", error);
+      console.error('Error streaming messages:', error);
     } finally {
       setIsRunning(false);
     }
-  };
+  }, [sendMessage]);
 
   const threadMessages = useExternalMessageConverter({
     callback: convertLangChainMessages,
@@ -215,13 +192,19 @@ export const useLangGraphRuntime = ({
         processedToolCallsRef.current.clear();
       };
 
-  // Simplified thread list without external dependencies
-  const threadList: NonNullable<
-    ExternalStoreAdapter["adapters"]
-  >["threadList"] = {
-    threads: [],
+  // Memoized thread list to prevent infinite loop warnings
+  const threadList = useMemo<NonNullable<ExternalStoreAdapter['adapters']>['threadList']>(() => ({
+    threads: threads.map((t) => ({
+      threadId: t.threadId,
+      title: t.title,
+      status: 'regular' as const,
+    })),
     threadId,
-    archivedThreads: [],
+    archivedThreads: archivedThreads.map((t) => ({
+      threadId: t.threadId,
+      title: t.title,
+      status: 'archived' as const,
+    })),
     onSwitchToNewThread: !onSwitchToNewThread
       ? undefined
       : async () => {
@@ -232,7 +215,7 @@ export const useLangGraphRuntime = ({
           processedToolCallsRef.current.clear();
         },
     onSwitchToThread: switchToThread,
-  };
+  }), [threads, archivedThreads, threadId, onSwitchToNewThread, switchToThread]);
 
   const loadingRef = useRef(false);
   const threadListItemRuntime = useThreadListItemRuntime({ optional: true });
@@ -249,20 +232,26 @@ export const useLangGraphRuntime = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Memoized adapters to prevent infinite loop warnings
+  const adapters = useMemo(() => ({
+    attachments,
+    feedback,
+    speech,
+    threadList,
+  }), [attachments, feedback, speech, threadList]);
+
+  // Memoized extras to prevent infinite loop warnings
+  const extras = useMemo(() => ({
+    [symbolLangGraphRuntimeExtras]: true,
+    interrupt,
+    send: handleSendMessage,
+  } satisfies LangGraphRuntimeExtras), [interrupt, handleSendMessage]);
+
   return useExternalStoreRuntime({
     isRunning,
     messages: threadMessages,
-    adapters: {
-      attachments,
-      feedback,
-      speech,
-      threadList,
-    },
-    extras: {
-      [symbolLangGraphRuntimeExtras]: true,
-      interrupt,
-      send: handleSendMessage,
-    } satisfies LangGraphRuntimeExtras,
+    adapters,
+    extras,
     onNew: (msg) => {
       // 清理已處理的 tool calls，開始新的對話輪次
       processedToolCallsRef.current.clear();
@@ -272,12 +261,12 @@ export const useLangGraphRuntime = ({
           ? getPendingToolCalls(messages).map(
               (t) =>
                 ({
-                  type: "tool",
+                  type: 'tool',
                   name: t.name,
                   tool_call_id: t.id,
                   content: JSON.stringify({ cancelled: true }),
-                  status: "error",
-                }) satisfies LangChainMessage & { type: "tool" },
+                  status: 'error',
+                }) satisfies LangChainMessage & { type: 'tool' }
             )
           : [];
 
@@ -285,22 +274,16 @@ export const useLangGraphRuntime = ({
         [
           ...cancellations,
           {
-            type: "human",
+            type: 'human',
             content: getMessageContent(msg),
           },
         ],
         {
           runConfig: msg.runConfig,
-        },
+        }
       );
     },
-    onAddToolResult: async ({
-      toolCallId,
-      toolName,
-      result,
-      isError,
-      artifact,
-    }) => {
+    onAddToolResult: async ({ toolCallId, toolName, result, isError, artifact }) => {
       if (processedToolCallsRef.current.has(toolCallId)) {
         console.log(`Tool call ${toolCallId} already processed, skipping`);
         return;
@@ -312,16 +295,16 @@ export const useLangGraphRuntime = ({
       await handleSendMessage(
         [
           {
-            type: "tool",
+            type: 'tool',
             name: toolName,
             tool_call_id: toolCallId,
             content: JSON.stringify(result),
             artifact,
-            status: isError ? "error" : "success",
+            status: isError ? 'error' : 'success',
           },
         ],
         // TODO reuse runconfig here!
-        {},
+        {}
       );
     },
     onCancel: unstable_allowCancellation

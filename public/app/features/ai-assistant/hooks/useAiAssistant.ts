@@ -20,32 +20,19 @@ export const useAiAssistant = (): AiAssistantHookResult => {
     return state.threads.get(state.currentThreadId) || null;
   }, [state.currentThreadId, state.threads]);
 
-  // Get threads as array
+  // Get active threads (non-archived)
   const threads = useMemo(() => {
-    return Array.from(state.threads.values()).sort(
-      (a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
-    );
-  }, [state.threads]);
+    return Array.from(state.threads.values())
+      .filter((t) => !state.archivedThreadIds.has(t.threadId))
+      .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime());
+  }, [state.threads, state.archivedThreadIds]);
 
-  // Send message to current thread
-  const sendMessage = useCallback(
-    async (message: string) => {
-      if (!message.trim()) {
-        throw new Error('Message cannot be empty');
-      }
-
-      await actions.sendMessage(message, state.currentThreadId || undefined);
-    },
-    [actions, state.currentThreadId]
-  );
-
-  // Create new thread
-  const createThread = useCallback(
-    async (name?: string): Promise<string> => {
-      return await actions.createThread(name);
-    },
-    [actions]
-  );
+  // Get archived threads
+  const archivedThreads = useMemo(() => {
+    return Array.from(state.threads.values())
+      .filter((t) => state.archivedThreadIds.has(t.threadId))
+      .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime());
+  }, [state.threads, state.archivedThreadIds]);
 
   // Switch to thread
   const switchThread = useCallback(
@@ -63,6 +50,22 @@ export const useAiAssistant = (): AiAssistantHookResult => {
     [actions]
   );
 
+  // Archive thread
+  const archiveThread = useCallback(
+    async (threadId: string) => {
+      await actions.archiveThread(threadId);
+    },
+    [actions]
+  );
+
+  // Unarchive thread
+  const unarchiveThread = useCallback(
+    async (threadId: string) => {
+      await actions.unarchiveThread(threadId);
+    },
+    [actions]
+  );
+
   // Clear error
   const clearError = useCallback(() => {
     actions.clearError();
@@ -72,12 +75,13 @@ export const useAiAssistant = (): AiAssistantHookResult => {
     isOpen: state.isOpen,
     currentThread,
     threads,
+    archivedThreads,
     isLoading: state.isLoading,
     error: state.error,
-    sendMessage,
-    createThread,
     switchThread,
     deleteThread,
+    archiveThread,
+    unarchiveThread,
     clearError,
   };
 };

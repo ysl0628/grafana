@@ -5,7 +5,7 @@ import { User } from 'app/types/user';
 
 export interface AiAssistantMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
   timestamp: Date;
   tools?: ToolCall[];
@@ -23,11 +23,12 @@ export interface GrafanaContext {
 }
 
 export interface ThreadState {
-  id: string;
-  name: string;
+  threadId: string;
   messages: AiAssistantMessage[];
   lastActivity: Date;
   context: GrafanaContext;
+  archived?: boolean;
+  title?: string;
 }
 
 export interface AiAssistantConfig {
@@ -59,6 +60,7 @@ export interface AiAssistantState {
   threads: Map<string, ThreadState>;
   isLoading: boolean;
   error: string | null;
+  archivedThreadIds: Set<string>;
 }
 
 export interface AiAssistantContextValue {
@@ -66,14 +68,16 @@ export interface AiAssistantContextValue {
   actions: {
     openSidebar: () => void;
     closeSidebar: () => void;
-    createThread: (name?: string) => string;
     switchThread: (threadId: string) => void;
     deleteThread: (threadId: string) => void;
     updateThread: (threadId: string, updates: Partial<ThreadState>) => void;
-    sendMessage: (message: string, threadId?: string) => Promise<void>;
+    archiveThread: (threadId: string) => Promise<void>;
+    unarchiveThread: (threadId: string) => Promise<void>;
     clearError: () => void;
   };
   tools: AiAssistantTools;
+  getActiveThreads: () => ThreadState[];
+  getArchivedThreads: () => ThreadState[];
 }
 
 export interface AiAssistantComponentProps {
@@ -95,12 +99,13 @@ export interface AiAssistantHookResult {
   isOpen: boolean;
   currentThread: ThreadState | null;
   threads: ThreadState[];
+  archivedThreads: ThreadState[];
   isLoading: boolean;
   error: string | null;
-  sendMessage: (message: string) => Promise<void>;
-  createThread: (name?: string) => Promise<string>;
   switchThread: (threadId: string) => void;
   deleteThread: (threadId: string) => void;
+  archiveThread: (threadId: string) => Promise<void>;
+  unarchiveThread: (threadId: string) => Promise<void>;
   clearError: () => void;
 }
 

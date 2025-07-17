@@ -35,7 +35,7 @@ export const AiAssistantMessage: React.FC = () => {
     <MessagePrimitive.Root className={styles.assistantMessage}>
       <div className={styles.messageHeader}>
         <Stack alignItems="center" gap={1}>
-          <Icon name="robot" size="sm" />
+          <Icon name="ai-sparkle" size="sm" />
           <Text variant="bodySmall" color="secondary">
             {t('ai-assistant.message.author', 'AI Assistant')}
           </Text>
@@ -328,7 +328,7 @@ const BranchPicker: React.FC = () => {
 const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
   const styles = useStyles2(getStyles);
   const { isCopied, copyToClipboard } = useCopyToClipboard();
-  
+
   const onCopy = () => {
     if (!code || isCopied) return;
     copyToClipboard(code);
@@ -448,12 +448,7 @@ const createMarkdownComponents = () => {
     code: function Code({ className, ...props }: any) {
       const styles = useStyles2(getMarkdownStyles);
       const isCodeBlock = useIsMarkdownCodeBlock();
-      return (
-        <code 
-          className={`${isCodeBlock ? styles.codeBlock : styles.inlineCode} ${className || ''}`} 
-          {...props} 
-        />
-      );
+      return <code className={`${isCodeBlock ? styles.codeBlock : styles.inlineCode} ${className || ''}`} {...props} />;
     },
     CodeHeader,
   });
@@ -651,7 +646,7 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     textDecoration: 'underline',
     textUnderlineOffset: '4px',
     '&:hover': {
-      color: theme.colors.text.linkHover,
+      color: theme.colors.text.link,
     },
   }),
   blockquote: css({

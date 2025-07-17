@@ -45,7 +45,7 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
 
-  const { threads, isLoading, error, clearError } = useAiAssistant();
+  const { isLoading, error, clearError } = useAiAssistant();
   const currentThread = useThread();
 
   const handleNewThread = () => {
@@ -117,7 +117,7 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         className={styles.historyModal}
       >
         <div ref={historyRef} className={styles.historyContent}>
-          <AiAssistantHistory threads={threads} onThreadSelect={closeHistory} onClearAll={handleClearAllThreads} />
+          <AiAssistantHistory onItemClick={closeHistory} />
         </div>
       </Modal>
 

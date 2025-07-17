@@ -166,16 +166,19 @@ export const useLangGraphRuntime = ({
   const processedToolCallsRef = useRef(new Set<string>());
   const { threads, archivedThreads } = useAiAssistant();
 
-  const handleSendMessage = useCallback(async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
-    try {
-      setIsRunning(true);
-      await sendMessage(messages, config);
-    } catch (error) {
-      console.error('Error streaming messages:', error);
-    } finally {
-      setIsRunning(false);
-    }
-  }, [sendMessage]);
+  const handleSendMessage = useCallback(
+    async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
+      try {
+        setIsRunning(true);
+        await sendMessage(messages, config);
+      } catch (error) {
+        console.error('Error streaming messages:', error);
+      } finally {
+        setIsRunning(false);
+      }
+    },
+    [sendMessage]
+  );
 
   const threadMessages = useExternalMessageConverter({
     callback: convertLangChainMessages,
@@ -192,30 +195,49 @@ export const useLangGraphRuntime = ({
         processedToolCallsRef.current.clear();
       };
 
+  // Memoized thread mappings to prevent infinite loop warnings
+  const mappedThreads = useMemo(
+    () =>
+      threads.map((t) => ({
+        threadId: t.threadId,
+        title: t.title || 'New Chat',
+        status: 'regular' as const,
+      })),
+    [threads]
+  );
+
+  const mappedArchivedThreads = useMemo(
+    () =>
+      archivedThreads.map((t) => ({
+        threadId: t.threadId,
+        title: t.title || 'New Chat',
+        status: 'archived' as const,
+      })),
+    [archivedThreads]
+  );
+
+  // Memoized onSwitchToNewThread callback
+  const memoizedOnSwitchToNewThread: (() => Promise<void>) | undefined = !onSwitchToNewThread
+    ? undefined
+    : async () => {
+        await onSwitchToNewThread();
+        setMessages([]);
+        setInterrupt(undefined);
+        // 切換到新線程時清理已處理的 tool calls
+        processedToolCallsRef.current.clear();
+      };
+
   // Memoized thread list to prevent infinite loop warnings
-  const threadList = useMemo<NonNullable<ExternalStoreAdapter['adapters']>['threadList']>(() => ({
-    threads: threads.map((t) => ({
-      threadId: t.threadId,
-      title: t.title,
-      status: 'regular' as const,
-    })),
-    threadId,
-    archivedThreads: archivedThreads.map((t) => ({
-      threadId: t.threadId,
-      title: t.title,
-      status: 'archived' as const,
-    })),
-    onSwitchToNewThread: !onSwitchToNewThread
-      ? undefined
-      : async () => {
-          await onSwitchToNewThread();
-          setMessages([]);
-          setInterrupt(undefined);
-          // 切換到新線程時清理已處理的 tool calls
-          processedToolCallsRef.current.clear();
-        },
-    onSwitchToThread: switchToThread,
-  }), [threads, archivedThreads, threadId, onSwitchToNewThread, switchToThread]);
+  const threadList = useMemo<NonNullable<ExternalStoreAdapter['adapters']>['threadList']>(
+    () => ({
+      threads: mappedThreads,
+      threadId,
+      archivedThreads: mappedArchivedThreads,
+      onSwitchToNewThread: memoizedOnSwitchToNewThread,
+      onSwitchToThread: switchToThread,
+    }),
+    [mappedThreads, mappedArchivedThreads, threadId, memoizedOnSwitchToNewThread, switchToThread]
+  );
 
   const loadingRef = useRef(false);
   const threadListItemRuntime = useThreadListItemRuntime({ optional: true });
@@ -233,19 +255,26 @@ export const useLangGraphRuntime = ({
   }, []);
 
   // Memoized adapters to prevent infinite loop warnings
-  const adapters = useMemo(() => ({
-    attachments,
-    feedback,
-    speech,
-    threadList,
-  }), [attachments, feedback, speech, threadList]);
+  const adapters = useMemo(
+    () => ({
+      attachments,
+      feedback,
+      speech,
+      threadList,
+    }),
+    [attachments, feedback, speech, threadList]
+  );
 
   // Memoized extras to prevent infinite loop warnings
-  const extras = useMemo(() => ({
-    [symbolLangGraphRuntimeExtras]: true,
-    interrupt,
-    send: handleSendMessage,
-  } satisfies LangGraphRuntimeExtras), [interrupt, handleSendMessage]);
+  const extras = useMemo(
+    () =>
+      ({
+        [symbolLangGraphRuntimeExtras]: true,
+        interrupt,
+        send: handleSendMessage,
+      }) satisfies LangGraphRuntimeExtras,
+    [interrupt, handleSendMessage]
+  );
 
   return useExternalStoreRuntime({
     isRunning,

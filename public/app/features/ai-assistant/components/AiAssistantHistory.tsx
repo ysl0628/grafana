@@ -1,145 +1,62 @@
-import { ThreadListPrimitive, ThreadListItemPrimitive, useThreadListItemRuntime } from '@assistant-ui/react';
+import { type FC, useState, useEffect } from 'react';
+import {
+  ThreadListPrimitive,
+  ThreadListItemPrimitive,
+  useThreadListItemRuntime,
+  useThreadList,
+} from '@assistant-ui/react';
 import { css } from '@emotion/css';
-import React, { useState, useEffect } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Icon, Button, Stack, Text, Input, Tooltip, EmptyState, ConfirmModal } from '@grafana/ui';
-
-import { ThreadState } from '../types/aiAssistant';
-
-interface AiAssistantHistoryProps {
-  threads: ThreadState[];
-  onThreadSelect?: (threadId: string) => void;
-  onClearAll?: () => void;
-  className?: string;
-}
+import { useStyles2, Icon, Button, Input } from '@grafana/ui';
 
 /**
  * AI Assistant History Component
  *
- * Displays and manages conversation thread history.
- * Provides functionality to switch between threads, rename them, and manage thread lifecycle.
+ * Thread list management following the reference pattern from react-ai-assistant-demo.
+ * Provides functionality to create new threads, rename them, and archive them.
  */
-export const AiAssistantHistory: React.FC<AiAssistantHistoryProps> = ({
-  threads,
-  onThreadSelect,
-  onClearAll,
-  className,
-}) => {
+export const AiAssistantHistory: FC<{ onItemClick?: () => void }> = ({ onItemClick }) => {
   const styles = useStyles2(getStyles);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
-
-  const filteredThreads = threads.filter(
-    (thread) =>
-      thread.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      thread.messages.some((msg) => msg.content.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const handleClearAll = () => {
-    setShowClearConfirm(true);
-  };
-
-  const handleConfirmClearAll = () => {
-    onClearAll?.();
-    setShowClearConfirm(false);
-  };
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
-      <ThreadListPrimitive.Root className={styles.threadList}>
-        {/* Header */}
-        <div className={styles.header}>
-          <Stack alignItems="center" justifyContent="space-between">
-            <Text variant="h6">{t('ai-assistant.history.title', 'Conversation History')}</Text>
-            <Stack alignItems="center" gap={1}>
-              <AiAssistantThreadNew />
-              {threads.length > 0 && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  icon="trash-alt"
-                  tooltip={t('ai-assistant.history.clear-all-tooltip', 'Clear all conversations')}
-                  onClick={handleClearAll}
-                  aria-label={t('ai-assistant.history.clear-all-aria-label', 'Clear all conversations')}
-                />
-              )}
-            </Stack>
-          </Stack>
-        </div>
-
-        {/* Search */}
-        {threads.length > 0 && (
-          <div className={styles.searchContainer}>
-            <Input
-              placeholder={t('ai-assistant.history.search-placeholder', 'Search conversations...')}
-              value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              prefix={<Icon name="search" />}
-              className={styles.searchInput}
-            />
-          </div>
-        )}
-
-        {/* Thread List */}
-        <div className={styles.threadListContainer}>
-          {filteredThreads.length === 0 ? (
-            <EmptyState
-              variant="not-found"
-              message={
-                searchTerm
-                  ? t('ai-assistant.history.no-search-results', 'No conversations match your search')
-                  : t('ai-assistant.history.no-conversations', 'No conversations yet')
-              }
-              button={
-                !searchTerm ? (
-                  <Button variant="primary" icon="plus">
-                    {t('ai-assistant.history.start-new-conversation', 'Start New Conversation')}
-                  </Button>
-                ) : null
-              }
-            />
-          ) : (
-            <ThreadListPrimitive.Items
-              components={{
-                ThreadListItem: (props) => <AiAssistantThreadListItem {...props} onThreadSelect={onThreadSelect} />,
-              }}
-            />
-          )}
-        </div>
-      </ThreadListPrimitive.Root>
-
-      {/* Clear All Confirmation */}
-      <ConfirmModal
-        isOpen={showClearConfirm}
-        title={t('ai-assistant.history.clear-all-modal.title', 'Clear All Conversations')}
-        body={t(
-          'ai-assistant.history.clear-all-modal.body',
-          'Are you sure you want to delete all conversation threads? This action cannot be undone.'
-        )}
-        confirmText={t('ai-assistant.history.clear-all-modal.confirm', 'Clear All')}
-        onConfirm={handleConfirmClearAll}
-        onDismiss={() => setShowClearConfirm(false)}
-      />
-    </div>
+    <ThreadListPrimitive.Root className={styles.threadListRoot}>
+      <AiAssistantThreadNew />
+      <AiAssistantThreadListItems onItemClick={onItemClick} />
+    </ThreadListPrimitive.Root>
   );
 };
 
-/**
- * Thread List Item Component
- *
- * Individual thread item with editing and selection capabilities.
- */
-const AiAssistantThreadListItem: React.FC<{
-  onThreadSelect?: (threadId: string) => void;
-}> = ({ onThreadSelect }) => {
+const AiAssistantThreadListItems: FC<{ onItemClick?: () => void }> = ({ onItemClick }) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  return (
+    <ThreadListPrimitive.Items
+      components={{
+        ThreadListItem: (props) => (
+          <AiAssistantThreadListItem
+            {...props}
+            onItemClick={onItemClick}
+            editingId={editingId}
+            setEditingId={setEditingId}
+          />
+        ),
+      }}
+    />
+  );
+};
+
+const AiAssistantThreadListItem: FC<{
+  onItemClick?: () => void;
+  editingId: string | null;
+  setEditingId: (id: string | null) => void;
+}> = ({ onItemClick, editingId, setEditingId }) => {
   const styles = useStyles2(getStyles);
   const thread = useThreadListItemRuntime();
   const [threadState, setThreadState] = useState(thread.getState());
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(threadState?.title || '');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const isEditing = editingId === threadState?.id;
+  const [inputValue, setInputValue] = useState(threadState?.title ?? '');
 
   useEffect(() => {
     const unsubscribe = thread.subscribe(() => setThreadState(thread.getState()));
@@ -148,97 +65,54 @@ const AiAssistantThreadListItem: React.FC<{
 
   useEffect(() => {
     if (!isEditing) {
-      setEditValue(threadState?.title || t('ai-assistant.thread.new-chat', 'New Chat'));
+      setInputValue(threadState?.title ?? t('ai-assistant.thread.new-chat', 'New Chat'));
     }
   }, [isEditing, threadState?.title]);
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  const handleConfirm = () => {
+    if (inputValue.trim() && inputValue.trim() !== threadState?.title) {
+      thread.rename(inputValue.trim());
+    }
+    setEditingId(null);
   };
 
-  const handleSaveEdit = () => {
-    if (editValue.trim() && editValue.trim() !== threadState?.title) {
-      thread.rename(editValue.trim());
-    }
-    setIsEditing(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditValue(threadState?.title || t('ai-assistant.thread.new-chat', 'New Chat'));
-  };
-
-  const handleSelect = () => {
-    if (threadState?.id) {
-      onThreadSelect?.(threadState.id);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!threadState?.id) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await thread.delete();
-    } catch (error) {
-      console.error('Error deleting thread:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const getThreadPreview = () => {
-    const messages = threadState?.messages || [];
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage) {
-      return lastMessage.content.substring(0, 60) + (lastMessage.content.length > 60 ? '...' : '');
-    }
-    return t('ai-assistant.thread.no-messages', 'No messages yet');
-  };
-
-  const getThreadDate = () => {
-    if (threadState?.lastActivity) {
-      return new Date(threadState.lastActivity).toLocaleDateString();
-    }
-    return '';
+  const handleCancel = () => {
+    setEditingId(null);
+    setInputValue(threadState?.title ?? t('ai-assistant.thread.new-chat', 'New Chat'));
   };
 
   if (isEditing) {
     return (
-      <div className={styles.threadItem}>
-        <div className={styles.editContainer}>
-          <Input
-            value={editValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSaveEdit();
-              }
-              if (e.key === 'Escape') {
-                handleCancelEdit();
-              }
-            }}
-            autoFocus
-            className={styles.editInput}
+      <div className={styles.threadItemEdit}>
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue((e.target as HTMLInputElement).value)}
+          className={styles.editInput}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleConfirm();
+            if (e.key === 'Escape') handleCancel();
+          }}
+        />
+        <div className={styles.editActions}>
+          {/* <Tooltip content={t('ai-assistant.thread.confirm-tooltip', 'Confirm')}> */}
+          <Button
+            variant="primary"
+            size="sm"
+            icon="check"
+            onClick={handleConfirm}
+            aria-label={t('ai-assistant.thread.confirm-aria-label', 'Confirm')}
           />
-          <Stack alignItems="center" gap={0.5}>
-            <Button
-              variant="primary"
-              size="sm"
-              icon="check"
-              onClick={handleSaveEdit}
-              aria-label={t('ai-assistant.thread.save-aria-label', 'Save')}
-            />
-            <Button
-              variant="secondary"
-              size="sm"
-              icon="times"
-              onClick={handleCancelEdit}
-              aria-label={t('ai-assistant.thread.cancel-aria-label', 'Cancel')}
-            />
-          </Stack>
+          {/* </Tooltip> */}
+          {/* <Tooltip content={t('ai-assistant.thread.cancel-tooltip', 'Cancel')}> */}
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="times"
+            onClick={handleCancel}
+            aria-label={t('ai-assistant.thread.cancel-aria-label', 'Cancel')}
+          />
+          {/* </Tooltip> */}
         </div>
       </div>
     );
@@ -246,103 +120,99 @@ const AiAssistantThreadListItem: React.FC<{
 
   return (
     <ThreadListItemPrimitive.Root className={styles.threadItem}>
-      <ThreadListItemPrimitive.Trigger className={styles.threadTrigger} onClick={handleSelect}>
-        <div className={styles.threadContent}>
-          <div className={styles.threadTitle}>
-            <ThreadListItemPrimitive.Title fallback={t('ai-assistant.thread.new-chat', 'New Chat')} />
-          </div>
-          <div className={styles.threadPreview}>{getThreadPreview()}</div>
-          <div className={styles.threadDate}>{getThreadDate()}</div>
-        </div>
+      <ThreadListItemPrimitive.Trigger className={styles.threadTrigger} onClick={onItemClick}>
+        <AiAssistantThreadListItemTitle />
       </ThreadListItemPrimitive.Trigger>
-
       <div className={styles.threadActions}>
-        <Tooltip content={t('ai-assistant.thread.rename-tooltip', 'Rename')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="edit"
-            onClick={handleEdit}
-            aria-label={t('ai-assistant.thread.rename-aria-label', 'Rename thread')}
-          />
-        </Tooltip>
-
-        <ThreadListItemPrimitive.Archive asChild>
-          <Tooltip content={t('ai-assistant.thread.delete-tooltip', 'Delete')}>
-            <Button
-              variant="destructive"
-              size="sm"
-              icon="trash-alt"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              aria-label={t('ai-assistant.thread.delete-aria-label', 'Delete thread')}
-            />
-          </Tooltip>
-        </ThreadListItemPrimitive.Archive>
+        {/* <Tooltip content={t('ai-assistant.thread.rename-tooltip', 'Rename thread')}> */}
+        <Button
+          variant="secondary"
+          size="sm"
+          icon="edit"
+          onClick={() => setEditingId(threadState?.id ?? null)}
+          disabled={editingId !== null && editingId !== threadState?.id}
+          aria-label={t('ai-assistant.thread.rename-aria-label', 'Rename thread')}
+        />
+        {/* </Tooltip> */}
+        <AiAssistantThreadListItemArchive />
       </div>
     </ThreadListItemPrimitive.Root>
   );
 };
 
-/**
- * New Thread Button Component
- */
-const AiAssistantThreadNew: React.FC = () => {
+const AiAssistantThreadListItemTitle: FC = () => {
+  const styles = useStyles2(getStyles);
+
+  return (
+    <p className={styles.threadTitle}>
+      <ThreadListItemPrimitive.Title fallback={t('ai-assistant.thread.new-chat', 'New Chat')} />
+    </p>
+  );
+};
+
+const AiAssistantThreadListItemArchive: FC = () => {
+  return (
+    <ThreadListItemPrimitive.Archive asChild>
+      {/* <Tooltip content={t('ai-assistant.thread.archive-tooltip', 'Archive thread')}> */}
+      <Button
+        variant="secondary"
+        size="sm"
+        icon="archive-alt"
+        aria-label={t('ai-assistant.thread.archive-aria-label', 'Archive thread')}
+      />
+      {/* </Tooltip> */}
+    </ThreadListItemPrimitive.Archive>
+  );
+};
+
+const AiAssistantThreadNew: FC = () => {
   const styles = useStyles2(getStyles);
 
   return (
     <ThreadListPrimitive.New asChild>
-      <Tooltip content={t('ai-assistant.thread.new-conversation-tooltip', 'New conversation')}>
-        <Button
-          variant="primary"
-          size="sm"
-          icon="plus"
-          aria-label={t('ai-assistant.thread.new-conversation-aria-label', 'New conversation')}
-        />
-      </Tooltip>
+      {/* <Tooltip content={t('ai-assistant.thread.new-thread-tooltip', 'New Thread')}> */}
+      <Button
+        variant="primary"
+        fill="outline"
+        icon="plus"
+        className={styles.newThreadButton}
+        aria-label={t('ai-assistant.thread.new-thread-aria-label', 'New Thread')}
+      >
+        {t('ai-assistant.thread.new-thread', 'New Thread')}
+      </Button>
+      {/* </Tooltip> */}
     </ThreadListPrimitive.New>
   );
 };
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  container: css({
+  threadListRoot: css({
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
-    minHeight: 0,
+    alignItems: 'stretch',
+    gap: theme.spacing(1.5),
   }),
-  threadList: css({
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    minHeight: 0,
-  }),
-  header: css({
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.colors.border.weak}`,
-    backgroundColor: theme.colors.background.secondary,
-  }),
-  searchContainer: css({
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.colors.border.weak}`,
-  }),
-  searchInput: css({
-    width: '100%',
-  }),
-  threadListContainer: css({
-    flex: 1,
-    minHeight: 0,
-    overflowY: 'auto',
+  newThreadButton: css({
     padding: theme.spacing(1),
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+    borderRadius: theme.shape.radius.default,
+    [theme.transitions.handleMotion('no-preference')]: {
+      transition: 'colors 0.2s ease',
+    },
+    '&:hover': {
+      backgroundColor: theme.colors.background.secondary,
+    },
   }),
   threadItem: css({
+    // Following assistant-ui CSS class naming: aui-thread-list-item
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: theme.spacing(1),
-    marginBottom: theme.spacing(0.5),
-    border: `1px solid ${theme.colors.border.weak}`,
     borderRadius: theme.shape.radius.default,
     backgroundColor: theme.colors.background.primary,
+    border: `1px solid ${theme.colors.border.weak}`,
     [theme.transitions.handleMotion('no-preference')]: {
       transition: 'all 0.2s ease',
     },
@@ -352,6 +222,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   threadTrigger: css({
+    // Following assistant-ui CSS class naming: aui-thread-list-item-trigger
     flex: 1,
     display: 'flex',
     alignItems: 'center',
@@ -362,46 +233,37 @@ const getStyles = (theme: GrafanaTheme2) => ({
     textAlign: 'left',
     minWidth: 0,
   }),
-  threadContent: css({
-    flex: 1,
-    minWidth: 0,
-  }),
   threadTitle: css({
+    // Following assistant-ui CSS class naming: aui-thread-list-item-title
     fontWeight: theme.typography.fontWeightMedium,
     fontSize: theme.typography.size.sm,
-    marginBottom: theme.spacing(0.5),
+    color: theme.colors.text.primary,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-  }),
-  threadPreview: css({
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing(0.5),
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  }),
-  threadDate: css({
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.disabled,
+    margin: 0,
   }),
   threadActions: css({
     display: 'flex',
-    gap: theme.spacing(0.5),
-    opacity: 0.7,
-    '&:hover': {
-      opacity: 1,
-    },
-  }),
-  editContainer: css({
-    display: 'flex',
     alignItems: 'center',
     gap: theme.spacing(1),
+  }),
+  threadItemEdit: css({
+    // Following assistant-ui CSS class naming: aui-thread-list-item (editing state)
+    display: 'flex',
+    alignItems: 'center',
     width: '100%',
+    padding: theme.spacing(1),
+    gap: theme.spacing(1),
   }),
   editInput: css({
     flex: 1,
+    height: theme.spacing(4),
+  }),
+  editActions: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
   }),
 });
 

@@ -59,7 +59,7 @@ const ThreadWelcome: React.FC = () => {
     <ThreadPrimitive.Empty>
       <div className={styles.welcomeContainer}>
         <Stack direction="column" alignItems="center" gap={2}>
-          <Icon name="robot" size="xl" />
+          <Icon name="grafana" size="xl" />
           <Text variant="h4">{t('ai-assistant.thread.welcome-title', 'How can I help you today?')}</Text>
           <Text variant="body" color="secondary">
             {t(
@@ -282,7 +282,7 @@ const ComposerAction: React.FC = () => {
           <Button
             variant="destructive"
             size="sm"
-            icon="square"
+            icon="square-shape"
             aria-label={t('ai-assistant.composer.stop-aria-label', 'Stop generating')}
             className={styles.sendButton}
           >

@@ -154,7 +154,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
           // Convert LangGraph threads to our ThreadState format
           threads = threadList.map((thread: any) => ({
             threadId: thread.thread_id,
-            name: thread.metadata?.threadTitle || 'New Chat',
+            title: thread.metadata?.threadTitle || 'New Chat',
             messages: [],
             lastActivity: new Date(thread.updated_at || thread.created_at),
             context: thread.metadata?.grafanaContext || getCurrentGrafanaContext(),

@@ -298,6 +298,7 @@
     "@grafana/ui": "workspace:*",
     "@hello-pangea/dnd": "18.0.1",
     "@kusto/monaco-kusto": "^10.0.0",
+    "@langchain/langgraph-sdk": "^0.0.97",
     "@leeoniya/ufuzzy": "1.0.18",
     "@lezer/common": "1.2.3",
     "@lezer/highlight": "1.2.1",

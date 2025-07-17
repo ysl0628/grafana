@@ -4797,6 +4797,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@langchain/langgraph-sdk@npm:^0.0.97":
+  version: 0.0.97
+  resolution: "@langchain/langgraph-sdk@npm:0.0.97"
+  dependencies:
+    "@types/json-schema": "npm:^7.0.15"
+    p-queue: "npm:^6.6.2"
+    p-retry: "npm:4"
+    uuid: "npm:^9.0.0"
+  peerDependencies:
+    "@langchain/core": ">=0.2.31 <0.4.0"
+    react: ^18 || ^19
+    react-dom: ^18 || ^19
+  peerDependenciesMeta:
+    "@langchain/core":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/7de67c4e38abe2aef7e9b56e35a14bcb3357b5947d4d8669790d9b50e5410ee1d3d0e166050fbecfcf7382c22948a530fabdcd02a3313a77b439c34e28c70954
+  languageName: node
+  linkType: hard
+
 "@leeoniya/ufuzzy@npm:1.0.18, @leeoniya/ufuzzy@npm:^1.0.16":
   version: 1.0.18
   resolution: "@leeoniya/ufuzzy@npm:1.0.18"
@@ -10446,6 +10469,13 @@ __metadata:
   version: 1.20.6
   resolution: "@types/resolve@npm:1.20.6"
   checksum: 10/dc35f5517606b6687cd971c0281ac58bdee2c50c051b030f04647d3991688be2259c304ee97e5b5d4b9936072c36767eb5933b54611a407d6557972bb6fea4f6
+  languageName: node
+  linkType: hard
+
+"@types/retry@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@types/retry@npm:0.12.0"
+  checksum: 10/bbd0b88f4b3eba7b7acfc55ed09c65ef6f2e1bcb4ec9b4dca82c66566934351534317d294a770a7cc6c0468d5573c5350abab6e37c65f8ef254443e1b028e44d
   languageName: node
   linkType: hard
 
@@ -18640,6 +18670,7 @@ __metadata:
     "@grafana/ui": "workspace:*"
     "@hello-pangea/dnd": "npm:18.0.1"
     "@kusto/monaco-kusto": "npm:^10.0.0"
+    "@langchain/langgraph-sdk": "npm:^0.0.97"
     "@leeoniya/ufuzzy": "npm:1.0.18"
     "@lezer/common": "npm:1.2.3"
     "@lezer/highlight": "npm:1.2.1"
@@ -24991,7 +25022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-queue@npm:6.6.2":
+"p-queue@npm:6.6.2, p-queue@npm:^6.6.2":
   version: 6.6.2
   resolution: "p-queue@npm:6.6.2"
   dependencies:
@@ -25005,6 +25036,16 @@ __metadata:
   version: 2.1.0
   resolution: "p-reduce@npm:2.1.0"
   checksum: 10/99b26d36066a921982f25c575e78355824da0787c486e3dd9fc867460e8bf17d5fb3ce98d006b41bdc81ffc0aa99edf5faee53d11fe282a20291fb721b0cb1c7
+  languageName: node
+  linkType: hard
+
+"p-retry@npm:4":
+  version: 4.6.2
+  resolution: "p-retry@npm:4.6.2"
+  dependencies:
+    "@types/retry": "npm:0.12.0"
+    retry: "npm:^0.13.1"
+  checksum: 10/45c270bfddaffb4a895cea16cb760dcc72bdecb6cb45fef1971fa6ea2e91ddeafddefe01e444ac73e33b1b3d5d29fb0dd18a7effb294262437221ddc03ce0f2e
   languageName: node
   linkType: hard
 

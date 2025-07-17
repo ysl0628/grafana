@@ -8,11 +8,13 @@ import { contextSrv } from 'app/core/core';
 import { 
   createNewThread, 
   deleteThread, 
-  updateThread, 
+  updateThreadTitle, 
+  updateThread,
   sendMessage,
-  listThreads,
+  getThreadList,
   shouldUseMockApi,
   mockApi,
+  convertMessagesToLangChain,
 } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import { 
@@ -159,7 +161,15 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
           const stored = localStorage.getItem(AI_ASSISTANT_STORAGE_KEYS.THREADS);
           threads = stored ? JSON.parse(stored) : [];
         } else {
-          threads = await listThreads();
+          const threadList = await getThreadList();
+          // Convert LangGraph threads to our ThreadState format
+          threads = threadList.map((thread: any) => ({
+            id: thread.thread_id,
+            name: thread.metadata?.threadTitle || 'New Chat',
+            messages: [],
+            lastActivity: new Date(thread.updated_at || thread.created_at),
+            context: thread.metadata?.grafanaContext || getCurrentGrafanaContext(),
+          }));
         }
         
         dispatch({ type: 'SET_THREADS', payload: threads });
@@ -263,7 +273,18 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
     
     try {
       if (!shouldUseMockApi()) {
-        await updateThread(threadId, updates);
+        // If updating the name, use updateThreadTitle, otherwise use updateThread
+        if (updates.name) {
+          await updateThreadTitle(threadId, updates.name);
+        }
+        // For other metadata updates
+        if (updates.context || Object.keys(updates).some(key => key !== 'name')) {
+          const metadata = {
+            ...(updates.name && { threadTitle: updates.name }),
+            ...(updates.context && { grafanaContext: updates.context }),
+          };
+          await updateThread(threadId, metadata);
+        }
       }
       
       dispatch({ type: 'UPDATE_THREAD', payload: { id: threadId, updates } });
@@ -306,12 +327,40 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
       if (thread) {
         const messages = [...thread.messages, userMessage];
         
-        const generator = shouldUseMockApi()
-          ? mockApi.sendMessage({ threadId: activeThreadId, messages, context, tools })
-          : sendMessage({ threadId: activeThreadId, messages, context, tools });
-        
-        for await (const response of generator) {
-          dispatch({ type: 'ADD_MESSAGE', payload: { threadId: activeThreadId, message: response } });
+        if (shouldUseMockApi()) {
+          const generator = mockApi.sendMessage({ threadId: activeThreadId, messages, context, tools });
+          for await (const response of generator) {
+            dispatch({ type: 'ADD_MESSAGE', payload: { threadId: activeThreadId, message: response } });
+          }
+        } else {
+          // Convert to LangChain format
+          const langChainMessages = convertMessagesToLangChain(messages);
+          
+          // Send messages using LangGraph SDK
+          const stream = await sendMessage({
+            threadId: activeThreadId,
+            messages: langChainMessages,
+            context,
+            tools,
+          });
+
+          // Stream responses
+          for await (const chunk of stream) {
+            if (chunk.event === 'messages' && chunk.data) {
+              // Convert LangChain message back to AI Assistant format
+              const message = chunk.data;
+              if (message.type === 'ai') {
+                const assistantMessage = {
+                  id: message.id || `msg-${Date.now()}`,
+                  role: 'assistant' as const,
+                  content: typeof message.content === 'string' ? message.content : message.content?.[0]?.text || '',
+                  timestamp: new Date(),
+                  context,
+                };
+                dispatch({ type: 'ADD_MESSAGE', payload: { threadId: activeThreadId, message: assistantMessage } });
+              }
+            }
+          }
         }
       }
     } catch (error) {

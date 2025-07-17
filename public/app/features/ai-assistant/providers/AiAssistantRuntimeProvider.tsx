@@ -1,12 +1,13 @@
 import { AssistantRuntimeProvider } from '@assistant-ui/react';
-import { useLangGraphRuntime } from '@assistant-ui/react-langgraph';
 import React, { useRef, ReactNode, useCallback, useEffect } from 'react';
+
+import { useLangGraphRuntime } from './runtimes/langgraph';
 
 import { config, getBackendSrv, locationService } from '@grafana/runtime';
 import { useGrafana } from 'app/core/context/GrafanaContext';
 import { contextSrv } from 'app/core/core';
 
-import { createThread, sendMessage, getThreadState, switchToThread, createNewThread } from '../services/aiAssistantApi';
+import { createThread, sendMessage, getThreadState, switchToThread, createNewThread, convertMessagesToLangChain } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import { GrafanaContext, AiAssistantMessage } from '../types/aiAssistant';
 
@@ -65,23 +66,32 @@ const useAiAssistantRuntime = () => {
         const threadId = threadIdRef.current;
         const grafanaContext = getGrafanaContext();
 
-        // Add Grafana context to messages
-        const contextualMessages = messages.map((msg) => ({
-          ...msg,
-          context: grafanaContext,
-        }));
+        // Convert to LangChain format
+        const langChainMessages = convertMessagesToLangChain(messages);
 
-        // Send messages with context
-        const generator = sendMessage({
+        // Send messages with context using LangGraph SDK
+        const stream = await sendMessage({
           threadId,
-          messages: contextualMessages,
+          messages: langChainMessages,
           context: grafanaContext,
           tools,
         });
 
         // Stream responses
-        for await (const chunk of generator) {
-          yield chunk;
+        for await (const chunk of stream) {
+          if (chunk.event === 'messages' && chunk.data) {
+            // Convert LangChain message back to AI Assistant format
+            const message = chunk.data;
+            if (message.type === 'ai') {
+              yield {
+                id: message.id || `msg-${Date.now()}`,
+                role: 'assistant' as const,
+                content: typeof message.content === 'string' ? message.content : message.content?.[0]?.text || '',
+                timestamp: new Date(),
+                context: grafanaContext,
+              };
+            }
+          }
         }
       } catch (error) {
         console.error('Error streaming messages:', error);
@@ -97,9 +107,17 @@ const useAiAssistantRuntime = () => {
       const state = await getThreadState(externalId);
       threadIdRef.current = externalId;
 
+      // Convert LangChain messages to AI Assistant format
+      const messages = (state.values?.messages || []).map((msg: any) => ({
+        id: msg.id || `msg-${Date.now()}`,
+        role: msg.type === 'human' ? 'user' : msg.type === 'ai' ? 'assistant' : 'system',
+        content: typeof msg.content === 'string' ? msg.content : msg.content?.[0]?.text || '',
+        timestamp: new Date(),
+      }));
+
       return {
-        messages: state.values?.messages || [],
-        interrupts: state.tasks?.[0]?.interrupts || [],
+        messages,
+        interrupts: [], // LangGraph SDK doesn't expose interrupts in the same way
       };
     } catch (error) {
       console.error('Error switching to thread:', error);

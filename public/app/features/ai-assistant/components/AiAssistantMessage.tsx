@@ -3,7 +3,7 @@ import {
   ActionBarPrimitive,
   BranchPickerPrimitive,
   ErrorPrimitive,
-  useMessage,
+  // useMessage,
 } from '@assistant-ui/react';
 import {
   type CodeHeaderProps,
@@ -27,22 +27,10 @@ import { useStyles2, Icon, Button, Stack, Text, Tooltip, Alert, CodeEditor, Spin
  */
 export const AiAssistantMessage: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const message = useMessage();
-
-  console.log('message', message);
+  // const message = useMessage();
 
   return (
     <MessagePrimitive.Root className={styles.assistantMessage}>
-      <div className={styles.messageHeader}>
-        <Stack alignItems="center" gap={1}>
-          <Icon name="ai-sparkle" size="sm" />
-          <Text variant="bodySmall" color="secondary">
-            {t('ai-assistant.message.author', 'AI Assistant')}
-          </Text>
-        </Stack>
-        <AssistantActionBar />
-      </div>
-
       <div className={styles.messageContent}>
         <MessagePrimitive.Parts
           components={{
@@ -61,6 +49,9 @@ export const AiAssistantMessage: React.FC = () => {
           }}
         />
         <MessageError />
+        <div className={styles.messageFooter}>
+          <AssistantActionBar />
+        </div>
       </div>
 
       <BranchPicker />
@@ -461,19 +452,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
     display: 'flex',
     flexDirection: 'column',
     marginBottom: theme.spacing(2),
-    maxWidth: '80%',
     alignSelf: 'flex-start',
+    width: '100%',
   }),
-  messageHeader: css({
+  messageFooter: css({
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     marginBottom: theme.spacing(1),
+    width: '100%',
   }),
   messageContent: css({
-    backgroundColor: theme.colors.background.secondary,
-    border: `1px solid ${theme.colors.border.weak}`,
-    borderRadius: theme.shape.radius.default,
     padding: theme.spacing(2),
     wordBreak: 'break-word',
   }),

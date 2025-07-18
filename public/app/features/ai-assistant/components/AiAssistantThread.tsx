@@ -4,8 +4,6 @@ import {
   MessagePrimitive,
   ActionBarPrimitive,
   BranchPickerPrimitive,
-  useThread,
-  ErrorPrimitive,
 } from '@assistant-ui/react';
 import { css } from '@emotion/css';
 import React, { useState } from 'react';
@@ -151,9 +149,11 @@ const AiAssistantUserMessage: React.FC = () => {
     <MessagePrimitive.Root className={styles.userMessage}>
       <div className={styles.messageContent}>
         <MessagePrimitive.Content />
+        <div className={styles.actionContainer}>
+          <BranchPicker />
+          <UserActionBar />
+        </div>
       </div>
-      <UserActionBar />
-      <BranchPicker />
     </MessagePrimitive.Root>
   );
 };
@@ -239,6 +239,7 @@ const AiAssistantComposer: React.FC = () => {
       <div className={styles.composerInputArea}>
         <ComposerPrimitive.Input
           value={inputValue}
+          style={{ height: 24 }}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder={t('ai-assistant.composer.placeholder', 'Ask questions, go places, make changes, anything.')}
           className={styles.composerInput}
@@ -372,7 +373,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex: 1,
     minHeight: 0,
     overflowY: 'auto',
-    padding: theme.spacing(3),
+    padding: theme.spacing(3, 0),
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: theme.colors.background.primary,
@@ -429,33 +430,40 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   userMessage: css({
+    backgroundColor: theme.colors.background.secondary,
+    color: theme.colors.text.primary,
+    width: '100%',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'flex-end',
-    marginBottom: theme.spacing(3),
-    maxWidth: '85%',
-    alignSelf: 'flex-end',
+    alignItems: 'flex-start',
   }),
   messageContent: css({
-    backgroundColor: theme.colors.primary.main,
-    color: theme.colors.primary.contrastText,
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
     padding: theme.spacing(2),
-    borderRadius: '12px',
-    marginBottom: theme.spacing(0.5),
     wordBreak: 'break-word',
-    fontSize: theme.typography.size.sm,
+    fontSize: theme.typography.body.fontSize,
     lineHeight: 1.6,
     [theme.transitions.handleMotion('no-preference')]: {
       transition: 'all 0.2s ease',
     },
     '&:hover': {
       transform: 'translateY(-1px)',
-      boxShadow: theme.shadows.z2,
     },
+    '& > p': {
+      margin: 0,
+    },
+  }),
+  actionContainer: css({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   }),
   actionBar: css({
     display: 'flex',
-    gap: theme.spacing(0.5),
+    flex: 1,
+    justifyContent: 'flex-end',
     opacity: 0.7,
     '&:hover': {
       opacity: 1,
@@ -486,7 +494,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    maxHeight: '150px',
+    maxHeight: '196px',
     overflow: 'hidden',
   }),
   composer: css({
@@ -506,14 +514,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
   composerInputArea: css({
     flex: 1,
     padding: 0,
-    paddingBottom: theme.spacing(6),
+    marginBottom: '32px',
     position: 'relative',
+    overflow: 'auto',
     minHeight: 0,
+    height: '100%',
+    maxHeight: '96px',
   }),
   composerInput: css({
     width: '100%',
     minHeight: theme.spacing(4),
-    maxHeight: theme.spacing(12),
     resize: 'none',
     border: 'none',
     outline: 'none',

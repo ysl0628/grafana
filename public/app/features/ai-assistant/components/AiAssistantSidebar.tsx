@@ -3,7 +3,19 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Icon, Button, Stack, Text, Spinner, Alert, Modal, ConfirmModal } from '@grafana/ui';
+import {
+  useStyles2,
+  Icon,
+  Button,
+  Stack,
+  Text,
+  Spinner,
+  Alert,
+  Modal,
+  ConfirmModal,
+  ToolbarButton,
+  Box,
+} from '@grafana/ui';
 
 import { useAiAssistant } from '../hooks/useAiAssistant';
 import { AiAssistantContextProvider } from '../providers/AiAssistantContextProvider';
@@ -12,7 +24,7 @@ import { AiAssistantComponentProps } from '../types/aiAssistant';
 
 import { AiAssistantHistory } from './AiAssistantHistory';
 import { AiAssistantThread } from './AiAssistantThread';
-import { useThread } from '@assistant-ui/react';
+import { useThread, useThreadListItem, useThreadRuntime } from '@assistant-ui/react';
 
 /**
  * AI Assistant Sidebar Component
@@ -47,6 +59,9 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
 
   const { isLoading, error, clearError } = useAiAssistant();
   const currentThread = useThread();
+  const { threads } = useAiAssistant();
+
+  const title = threads[0]?.title;
 
   const handleNewThread = () => {
     setIsHistoryOpen(false);
@@ -72,42 +87,53 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   return (
     <div className={styles.content}>
       {/* Header */}
-      <div className={styles.header}>
-        <Stack alignItems="center" justifyContent="space-between">
-          <Text variant="h5">{t('ai-assistant.title', 'AI Assistant')}</Text>
-          <Stack alignItems="center" gap={0.5}>
+      <Box
+        backgroundColor="canvas"
+        paddingRight={2}
+        paddingLeft={2}
+        paddingTop={0.5}
+        paddingBottom={0.5}
+        width="100%"
+        display="flex"
+        direction="row"
+        justifyContent="space-between"
+      >
+        <Box display="flex" direction="row" alignItems="center" gap={0.5}>
+          <Icon name="ai-sparkle" size="sm" />
+          <ToolbarButton
+            variant="default"
+            narrow={true}
+            isOpen={isHistoryOpen}
+            tooltip={t('ai-assistant.history.tooltip', 'Thread History')}
+            onClick={toggleHistory}
+            aria-label={t('ai-assistant.history.aria-label', 'Thread History')}
+          >
+            <Text variant="body">{title || t('ai-assistant.title', 'AI Assistant')}</Text>
+          </ToolbarButton>
+        </Box>
+        <Stack alignItems="center" gap={0.5}>
+          <Button
+            variant="secondary"
+            size="sm"
+            fill="text"
+            icon="plus"
+            tooltip={t('ai-assistant.new-thread.tooltip', 'New Thread')}
+            onClick={handleNewThread}
+            aria-label={t('ai-assistant.new-thread.aria-label', 'New Thread')}
+          />
+          {onClose && (
             <Button
               variant="secondary"
               size="sm"
               fill="text"
-              icon="history"
-              tooltip={t('ai-assistant.history.tooltip', 'Thread History')}
-              onClick={toggleHistory}
-              aria-label={t('ai-assistant.history.aria-label', 'Thread History')}
+              icon="times"
+              tooltip={t('ai-assistant.close.tooltip', 'Close')}
+              onClick={onClose}
+              aria-label={t('ai-assistant.close.aria-label', 'Close AI Assistant')}
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              fill="text"
-              icon="plus"
-              tooltip={t('ai-assistant.new-thread.tooltip', 'New Thread')}
-              onClick={handleNewThread}
-              aria-label={t('ai-assistant.new-thread.aria-label', 'New Thread')}
-            />
-            {onClose && (
-              <Button
-                variant="secondary"
-                size="sm"
-                fill="text"
-                icon="times"
-                tooltip={t('ai-assistant.close.tooltip', 'Close')}
-                onClick={onClose}
-                aria-label={t('ai-assistant.close.aria-label', 'Close AI Assistant')}
-              />
-            )}
-          </Stack>
+          )}
         </Stack>
-      </div>
+      </Box>
 
       {/* History Modal */}
       <Modal
@@ -183,12 +209,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexDirection: 'column',
     height: '100%',
     minHeight: 0,
-  }),
-  header: css({
-    padding: theme.spacing(2),
-    // borderBottom: `1px solid ${theme.colors.border.weak}`,
-    // backgroundColor: theme.colors.background.secondary,
-    flexShrink: 0,
   }),
   mouseButton: css({
     '&:hover': {

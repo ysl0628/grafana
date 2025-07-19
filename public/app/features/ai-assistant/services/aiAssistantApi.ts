@@ -1,18 +1,18 @@
-import { Client, type ThreadState } from "@langchain/langgraph-sdk";
+import { Client, type ThreadState } from '@langchain/langgraph-sdk';
 import { config } from '@grafana/runtime';
 import { AiAssistantMessage, GrafanaContext, AiAssistantTools } from '../types/aiAssistant';
 import { LangChainMessage } from '../providers/runtimes/langgraph/types';
 
 /**
  * AI Assistant API Service using LangGraph SDK
- * 
+ *
  * Provides LangGraph client-based communication for AI assistant functionality.
  * Uses the same pattern as the react-ai-assistant-demo implementation.
  */
 
 // LangGraph client configuration
 const client = new Client({
-  apiUrl: config.aiAssistantApiUrl || "http://localhost:8123",
+  apiUrl: config?.aiAssistantApiUrl || 'http://localhost:2024',
 });
 
 interface CreateThreadResponse {
@@ -30,38 +30,36 @@ interface SendMessageRequest {
 /**
  * Convert AI Assistant messages to LangChain format
  */
-export const convertMessagesToLangChain = (
-  messages: readonly AiAssistantMessage[],
-): LangChainMessage[] => {
+export const convertMessagesToLangChain = (messages: readonly AiAssistantMessage[]): LangChainMessage[] => {
   const langChainMessages: LangChainMessage[] = [];
 
   for (const msg of messages) {
     switch (msg.role) {
-      case "user":
+      case 'user':
         langChainMessages.push({
           id: msg.id,
-          type: "human",
+          type: 'human',
           content: [
             {
-              type: "text",
+              type: 'text',
               text: String(msg.content),
             },
           ],
         });
         break;
 
-      case "assistant":
+      case 'assistant':
         langChainMessages.push({
           id: msg.id,
-          type: "ai",
+          type: 'ai',
           content: String(msg.content),
         });
         break;
 
-      case "system":
+      case 'system':
         langChainMessages.push({
           id: msg.id,
-          type: "system",
+          type: 'system',
           content: String(msg.content),
         });
         break;
@@ -83,12 +81,7 @@ const convertToolMessage = (toolMessage: LangChainMessage) => {
     toolMessageContent = { content: toolMessage.content };
   }
 
-  if (
-    !toolMessage?.type ||
-    toolMessage?.type !== "tool" ||
-    !toolMessageContent?.isResult
-  )
-    return null;
+  if (!toolMessage?.type || toolMessage?.type !== 'tool' || !toolMessageContent?.isResult) return null;
 
   return toolMessageContent;
 };
@@ -120,9 +113,7 @@ export const createNewThread = async (context?: GrafanaContext): Promise<CreateT
 /**
  * Get thread state using LangGraph SDK
  */
-export const getThreadState = async (
-  threadId: string,
-): Promise<ThreadState<{ messages: LangChainMessage[] }>> => {
+export const getThreadState = async (threadId: string): Promise<ThreadState<{ messages: LangChainMessage[] }>> => {
   return client.threads.getState(threadId);
 };
 
@@ -144,39 +135,37 @@ export const sendMessage = async (params: {
 }) => {
   const convertedMessages = convertMessagesToLangChain(params.messages as any);
   const convertedToolMessage = convertToolMessage(params.messages[0]);
-  
-  return client.runs.stream(
-    params.threadId,
-    config.aiAssistantId || "default-assistant",
-    {
-      ...(!convertedToolMessage
-        ? {
-            input: {
-              messages: convertedMessages,
-              grafanaContext: params.context,
-              tools: params.tools ? Object.keys(params.tools).map(name => ({
-                type: "function",
-                function: {
-                  name,
-                  description: params.tools![name].description || `Grafana tool: ${name}`,
-                  parameters: params.tools![name].parameters || {
-                    type: "object",
-                    properties: {},
+
+  return client.runs.stream(params.threadId, config.aiAssistantId || 'agent', {
+    ...(!convertedToolMessage
+      ? {
+          input: {
+            messages: convertedMessages,
+            grafanaContext: params.context,
+            tools: params.tools
+              ? Object.keys(params.tools).map((name) => ({
+                  type: 'function',
+                  function: {
+                    name,
+                    description: params.tools![name].description || `Grafana tool: ${name}`,
+                    parameters: params.tools![name].parameters || {
+                      type: 'object',
+                      properties: {},
+                    },
                   },
-                },
-              })) : [],
-            },
-          }
-        : {}),
-      command: convertedToolMessage,
-      metadata: {
-        threadTitle: convertedMessages[0]?.content?.[0]?.text || "New Chat",
-        grafanaContext: params.context,
-      },
-      streamMode: ["messages-tuple", "messages", "updates"],
-      streamResumable: true,
+                }))
+              : [],
+          },
+        }
+      : {}),
+    command: convertedToolMessage,
+    metadata: {
+      threadTitle: convertedMessages[0]?.content?.[0]?.text || 'New Chat',
+      grafanaContext: params.context,
     },
-  );
+    streamMode: ['messages-tuple', 'messages', 'updates'],
+    streamResumable: true,
+  });
 };
 
 /**
@@ -221,11 +210,11 @@ export const updateThread = async (threadId: string, metadata: Record<string, an
 export const getThreadHistory = async (threadId: string, limit?: number) => {
   const state = await client.threads.getState(threadId);
   const messages = state.values?.messages || [];
-  
+
   if (limit) {
     return messages.slice(-limit);
   }
-  
+
   return messages;
 };
 
@@ -265,38 +254,39 @@ export const cancelOperation = async (threadId: string): Promise<void> => {
  */
 export const mockApi = {
   createThread: async (): Promise<CreateThreadResponse> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return {
       thread_id: `mock-thread-${Date.now()}`,
       created_at: new Date().toISOString(),
     };
   },
-  
+
   getThreadState: async (threadId: string) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     return {
       values: { messages: [] },
       tasks: [{ interrupts: [] }],
     };
   },
-  
+
   sendMessage: async (request: SendMessageRequest) => {
     // Mock streaming response
     return {
       async *[Symbol.asyncIterator]() {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         yield {
           event: 'messages',
           data: {
             id: `mock-msg-${Date.now()}`,
             type: 'ai',
-            content: 'This is a mock response for development purposes. The AI assistant integration is working correctly!',
+            content:
+              'This is a mock response for development purposes. The AI assistant integration is working correctly!',
           },
         };
       },
     };
   },
-  
+
   checkApiHealth: async (): Promise<{ status: string; version?: string }> => {
     return { status: 'ok', version: 'mock-1.0.0' };
   },

@@ -180,67 +180,9 @@ export const useLangGraphRuntime = ({
     [sendMessage]
   );
 
-  const fakeThreads: { messages: LangChainMessage[]; threadId: string; title: string; lastActivity: Date }[] = [
-    {
-      threadId: 'thread-1',
-      title: 'Dashboard Analysis',
-      lastActivity: new Date(Date.now() - 3600000), // 1 hour ago
-      // context: currentContext,
-      messages: [
-        {
-          id: 'msg-1-1',
-          type: 'human',
-          content: [
-            {
-              type: 'text',
-              text: 'Can you help me analyze the performance of my dashboard?',
-            },
-          ],
-          // createdAt: new Date(Date.now() - 3600000).toISOString(),
-          // timestamp: new Date(Date.now() - 3600000),
-          // context: currentContext,
-        },
-        {
-          id: 'msg-1-2',
-          type: 'ai',
-          content: [
-            {
-              type: 'text',
-              text: "I'd be happy to help you analyze your dashboard performance. Let me gather some information about your dashboard first.",
-            },
-          ],
-          // createdAt: new Date(Date.now() - 3595000).toISOString(),
-          // timestamp: new Date(Date.now() - 3595000),
-          // context: currentContext,
-          // tools: [
-          //   {
-          //     id: 'tool-1-1',
-          //     name: 'getDashboardInfo',
-          //     parameters: { dashboardId: '1' },
-          //   },
-          // ],
-        },
-
-        {
-          id: 'msg-1-4',
-          type: 'ai',
-          content: [
-            {
-              type: 'text',
-              text: 'Your dashboard has 8 panels with 3 data sources. The overall performance looks good, but I notice some potential optimization opportunities in the query patterns.',
-            },
-          ],
-          // createdAt: new Date(Date.now() - 3585000).toISOString(),
-          // timestamp: new Date(Date.now() - 3585000),
-          // context: currentContext,
-        },
-      ],
-    },
-  ];
-
   const threadMessages = useExternalMessageConverter({
     callback: convertLangChainMessages,
-    messages: fakeThreads[0].messages,
+    messages,
     isRunning,
   });
 

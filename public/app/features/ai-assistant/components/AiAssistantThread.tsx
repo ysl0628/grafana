@@ -248,10 +248,7 @@ const AiAssistantComposer: React.FC = () => {
         autoFocus
       />
 
-      {/* Send 按鈕區域 */}
-      <div className={styles.composerActions}>
-        <ComposerAction />
-      </div>
+      <ComposerAction />
     </ComposerPrimitive.Root>
   );
 };
@@ -554,14 +551,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
       backgroundColor: `${theme.colors.action.hover}`,
     },
   }),
-  composerActions: css({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  }),
   composerAction: css({
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'flex-end',
   }),
   scrollToBottom: css({
     position: 'absolute',

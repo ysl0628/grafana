@@ -34,7 +34,7 @@ export const AiAssistantRuntimeProvider: React.FC<AiAssistantRuntimeProviderProp
 const useAiAssistantRuntime = () => {
   const threadIdRef = useRef<string | undefined>(undefined);
   const tools = getAiAssistantTools();
-  const getGrafanaContext = useGrafanaContext();
+  // const getGrafanaContext = useGrafanaContext();
 
   // Enhanced message streaming with Grafana context
   const streamMessages = useCallback(
@@ -47,7 +47,7 @@ const useAiAssistantRuntime = () => {
         }
 
         const threadId = threadIdRef.current;
-        const grafanaContext = getGrafanaContext();
+        // const grafanaContext = getGrafanaContext();
 
         // Convert to LangChain format
         // const langChainMessages = convertMessagesToLangChain(messages);
@@ -81,7 +81,7 @@ const useAiAssistantRuntime = () => {
         throw error;
       }
     },
-    [getGrafanaContext, tools]
+    [tools]
   );
 
   // Thread switching handler

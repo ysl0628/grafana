@@ -15,7 +15,6 @@ import {
   ThreadState,
   AI_ASSISTANT_STORAGE_KEYS,
 } from '../types/aiAssistant';
-import { getCurrentGrafanaContext } from '../utils/grafanaContext';
 
 // Action types
 type AiAssistantAction =
@@ -142,7 +141,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
         let threads: ThreadState[];
-
+        console.log('shouldUseMockApi()', shouldUseMockApi());
         if (shouldUseMockApi()) {
           // Load from localStorage for mock mode
           const stored = localStorage.getItem(AI_ASSISTANT_STORAGE_KEYS.THREADS);
@@ -155,7 +154,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
             title: thread.metadata?.threadTitle || 'New Chat',
             messages: [],
             lastActivity: new Date(thread.updated_at || thread.created_at),
-            context: thread.metadata?.grafanaContext || getCurrentGrafanaContext(),
+            context: thread.metadata?.grafanaContext || {},
           }));
         }
         dispatch({ type: 'SET_THREADS', payload: threads });

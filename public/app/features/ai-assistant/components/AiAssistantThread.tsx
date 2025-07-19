@@ -222,6 +222,10 @@ const AiAssistantComposer: React.FC = () => {
   const styles = useStyles2(getStyles);
   const [inputValue, setInputValue] = useState('');
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+  };
+
   return (
     <ComposerPrimitive.Root className={styles.composer}>
       {/* Header 區域 */}
@@ -236,19 +240,16 @@ const AiAssistantComposer: React.FC = () => {
       </div>
 
       {/* 輸入區域 */}
-      <div className={styles.composerInputArea}>
-        <ComposerPrimitive.Input
-          value={inputValue}
-          style={{ height: 24 }}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder={t('ai-assistant.composer.placeholder', 'Ask questions, go places, make changes, anything.')}
-          className={styles.composerInput}
-          autoFocus
-        />
-      </div>
+      <ComposerPrimitive.Input
+        value={inputValue}
+        onChange={handleInputChange}
+        placeholder={t('ai-assistant.composer.placeholder', 'Ask questions, go places, make changes, anything.')}
+        className={styles.composerInput}
+        autoFocus
+      />
 
-      {/* 右下角固定的 Send 按鈕 */}
-      <div className={styles.fixedSendButton}>
+      {/* Send 按鈕區域 */}
+      <div className={styles.composerActions}>
         <ComposerAction />
       </div>
     </ComposerPrimitive.Root>
@@ -268,13 +269,12 @@ const ComposerAction: React.FC = () => {
       <ThreadPrimitive.If running={false}>
         <ComposerPrimitive.Send asChild>
           <Button
-            variant="secondary"
+            variant="primary"
             size="sm"
             icon="enter"
             aria-label={t('ai-assistant.composer.send-aria-label', 'Send message')}
-            className={styles.sendButton}
           >
-            <span className={styles.sendButtonText}>{t('ai-assistant.composer.send', 'Send')}</span>
+            {t('ai-assistant.composer.send', 'Send')}
           </Button>
         </ComposerPrimitive.Send>
       </ThreadPrimitive.If>
@@ -285,9 +285,8 @@ const ComposerAction: React.FC = () => {
             size="sm"
             icon="square-shape"
             aria-label={t('ai-assistant.composer.stop-aria-label', 'Stop generating')}
-            className={styles.sendButton}
           >
-            <span className={styles.sendButtonText}>{t('ai-assistant.composer.stop', 'Stop')}</span>
+            {t('ai-assistant.composer.stop', 'Stop')}
           </Button>
         </ComposerPrimitive.Cancel>
       </ThreadPrimitive.If>
@@ -494,13 +493,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
+    minHeight: '125px',
     maxHeight: '196px',
-    overflow: 'hidden',
   }),
   composer: css({
     display: 'flex',
     flexDirection: 'column',
-    position: 'relative',
     flex: 1,
     minHeight: 0,
   }),
@@ -511,41 +509,41 @@ const getStyles = (theme: GrafanaTheme2) => ({
     height: theme.spacing(5),
     flexShrink: 0,
   }),
-  composerInputArea: css({
-    flex: 1,
-    padding: 0,
-    marginBottom: '32px',
-    position: 'relative',
-    overflow: 'auto',
-    minHeight: 0,
-    height: '100%',
-    maxHeight: '96px',
-  }),
   composerInput: css({
     width: '100%',
-    minHeight: theme.spacing(4),
+    minHeight: '40px', // Initial height
+    maxHeight: '140px', // Max height before scrollbar appears
     resize: 'none',
     border: 'none',
     outline: 'none',
+    marginBottom: theme.spacing(1),
     backgroundColor: 'transparent',
     color: theme.colors.text.primary,
     fontSize: theme.typography.size.md,
     lineHeight: 1.5,
     padding: 0,
-    overflow: 'auto',
+    overflow: 'hidden', // Initially hidden, will change to auto when maxHeight reached
     '&::placeholder': {
       color: theme.colors.text.secondary,
       opacity: 0.8,
     },
+    // Auto-resize behavior
+    '&[style*="height"]': {
+      overflow: 'auto !important',
+    },
     '&::-webkit-scrollbar': {
-      width: '4px',
+      width: '6px',
     },
     '&::-webkit-scrollbar-track': {
-      background: 'transparent',
+      background: theme.colors.background.secondary,
+      borderRadius: '3px',
     },
     '&::-webkit-scrollbar-thumb': {
       background: theme.colors.border.medium,
-      borderRadius: '2px',
+      borderRadius: '3px',
+      '&:hover': {
+        background: theme.colors.border.strong,
+      },
     },
   }),
   atButton: css({
@@ -556,27 +554,14 @@ const getStyles = (theme: GrafanaTheme2) => ({
       backgroundColor: `${theme.colors.action.hover}`,
     },
   }),
-  fixedSendButton: css({
-    position: 'absolute',
-    bottom: theme.spacing(0.5),
-    right: 0,
+  composerActions: css({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   }),
   composerAction: css({
     display: 'flex',
     alignItems: 'center',
-  }),
-  sendButton: css({
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-    padding: `${theme.spacing(0.5)} ${theme.spacing(1)}`,
-    minWidth: 'auto',
-    height: theme.spacing(4),
-    fontSize: theme.typography.size.sm,
-  }),
-  sendButtonText: css({
-    fontSize: theme.typography.size.sm,
-    fontWeight: theme.typography.fontWeightMedium,
   }),
   scrollToBottom: css({
     position: 'absolute',

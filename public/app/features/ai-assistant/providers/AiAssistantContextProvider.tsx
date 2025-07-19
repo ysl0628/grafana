@@ -6,7 +6,6 @@ import {
   updateThreadTitle,
   updateThread,
   getThreadList,
-  shouldUseMockApi,
 } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import {
@@ -140,23 +139,15 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
     const loadThreads = async () => {
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
-        let threads: ThreadState[];
-        console.log('shouldUseMockApi()', shouldUseMockApi());
-        if (shouldUseMockApi()) {
-          // Load from localStorage for mock mode
-          const stored = localStorage.getItem(AI_ASSISTANT_STORAGE_KEYS.THREADS);
-          threads = stored ? JSON.parse(stored) : [];
-        } else {
-          const threadList = await getThreadList();
-          // Convert LangGraph threads to our ThreadState format
-          threads = threadList.map((thread: any) => ({
-            threadId: thread.thread_id,
-            title: thread.metadata?.threadTitle || 'New Chat',
-            messages: [],
-            lastActivity: new Date(thread.updated_at || thread.created_at),
-            context: thread.metadata?.grafanaContext || {},
-          }));
-        }
+        const threadList = await getThreadList();
+        // Convert LangGraph threads to our ThreadState format
+        const threads: ThreadState[] = threadList.map((thread: any) => ({
+          threadId: thread.thread_id,
+          title: thread.metadata?.threadTitle || 'New Chat',
+          messages: [],
+          lastActivity: new Date(thread.updated_at || thread.created_at),
+          context: thread.metadata?.grafanaContext || {},
+        }));
         dispatch({ type: 'SET_THREADS', payload: threads });
 
         // Restore current thread if stored
@@ -174,13 +165,6 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
     loadThreads();
   }, [storedCurrentThread]);
 
-  // Save threads to localStorage (for mock mode)
-  useEffect(() => {
-    if (shouldUseMockApi()) {
-      const threadsArray = Array.from(state.threads.values());
-      localStorage.setItem(AI_ASSISTANT_STORAGE_KEYS.THREADS, JSON.stringify(threadsArray));
-    }
-  }, [state.threads]);
 
   // Save current thread to localStorage
   useEffect(() => {
@@ -207,10 +191,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      if (!shouldUseMockApi()) {
-        await deleteThread(threadId);
-      }
-
+      await deleteThread(threadId);
       dispatch({ type: 'DELETE_THREAD', payload: threadId });
     } catch (error) {
       console.error('Error deleting thread:', error);
@@ -226,19 +207,17 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      if (!shouldUseMockApi()) {
-        // If updating the name, use updateThreadTitle, otherwise use updateThread
-        if (updates.title) {
-          await updateThreadTitle(threadId, updates.title);
-        }
-        // For other metadata updates
-        if (updates.context || Object.keys(updates).some((key) => key !== 'title')) {
-          const metadata = {
-            ...(updates.title && { threadTitle: updates.title }),
-            ...(updates.context && { grafanaContext: updates.context }),
-          };
-          await updateThread(threadId, metadata);
-        }
+      // If updating the name, use updateThreadTitle, otherwise use updateThread
+      if (updates.title) {
+        await updateThreadTitle(threadId, updates.title);
+      }
+      // For other metadata updates
+      if (updates.context || Object.keys(updates).some((key) => key !== 'title')) {
+        const metadata = {
+          ...(updates.title && { threadTitle: updates.title }),
+          ...(updates.context && { grafanaContext: updates.context }),
+        };
+        await updateThread(threadId, metadata);
       }
 
       dispatch({ type: 'UPDATE_THREAD', payload: { id: threadId, updates } });

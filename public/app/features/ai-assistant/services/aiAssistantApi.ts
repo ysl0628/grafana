@@ -249,55 +249,7 @@ export const cancelOperation = async (threadId: string): Promise<void> => {
   }
 };
 
-/**
- * Mock API functions for development
- */
-export const mockApi = {
-  createThread: async (): Promise<CreateThreadResponse> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return {
-      thread_id: `mock-thread-${Date.now()}`,
-      created_at: new Date().toISOString(),
-    };
-  },
 
-  getThreadState: async (threadId: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return {
-      values: { messages: [] },
-      tasks: [{ interrupts: [] }],
-    };
-  },
-
-  sendMessage: async (request: SendMessageRequest) => {
-    // Mock streaming response
-    return {
-      async *[Symbol.asyncIterator]() {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        yield {
-          event: 'messages',
-          data: {
-            id: `mock-msg-${Date.now()}`,
-            type: 'ai',
-            content:
-              'This is a mock response for development purposes. The AI assistant integration is working correctly!',
-          },
-        };
-      },
-    };
-  },
-
-  checkApiHealth: async (): Promise<{ status: string; version?: string }> => {
-    return { status: 'ok', version: 'mock-1.0.0' };
-  },
-};
-
-/**
- * Check if we should use mock API (for development)
- */
-export function shouldUseMockApi(): boolean {
-  return config.aiAssistantUseMock || !config.aiAssistantApiUrl;
-}
 
 export default {
   createThread,
@@ -313,6 +265,4 @@ export default {
   checkApiHealth,
   cancelOperation,
   convertMessagesToLangChain,
-  mockApi,
-  shouldUseMockApi,
 };

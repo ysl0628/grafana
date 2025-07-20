@@ -71,6 +71,11 @@ export const useAiAssistant = (): AiAssistantHookResult => {
     actions.clearError();
   }, [actions]);
 
+  // Rename thread
+  const onRename = async (threadId: string, newTitle: string) => {
+    await actions.updateThread(threadId, { title: newTitle });
+  };
+
   return {
     isOpen: state.isOpen,
     currentThread,
@@ -83,6 +88,7 @@ export const useAiAssistant = (): AiAssistantHookResult => {
     archiveThread,
     unarchiveThread,
     clearError,
+    onRename,
   };
 };
 

@@ -164,7 +164,7 @@ export const useLangGraphRuntime = ({
 
   const [isRunning, setIsRunning] = useState(false);
   const processedToolCallsRef = useRef(new Set<string>());
-  const { threads, archivedThreads } = useAiAssistant();
+  const { threads, archivedThreads, onRename } = useAiAssistant();
 
   const handleSendMessage = useCallback(
     async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
@@ -235,6 +235,7 @@ export const useLangGraphRuntime = ({
       archivedThreads: mappedArchivedThreads,
       onSwitchToNewThread: memoizedOnSwitchToNewThread,
       onSwitchToThread: switchToThread,
+      onRename,
     }),
     [mappedThreads, mappedArchivedThreads, threadId, memoizedOnSwitchToNewThread, switchToThread]
   );

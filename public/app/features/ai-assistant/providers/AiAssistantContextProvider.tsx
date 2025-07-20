@@ -1,12 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { useLocalStorage } from 'react-use';
 
-import {
-  deleteThread,
-  updateThreadTitle,
-  updateThread,
-  getThreadList,
-} from '../services/aiAssistantApi';
+import { deleteThread, updateThreadTitle, updateThread, getThreadList } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import {
   AiAssistantState,
@@ -107,7 +102,6 @@ function aiAssistantReducer(state: AiAssistantState, action: AiAssistantAction):
         ...state,
         archivedThreadIds: action.payload,
       };
-
     default:
       return state;
   }
@@ -164,7 +158,6 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
 
     loadThreads();
   }, [storedCurrentThread]);
-
 
   // Save current thread to localStorage
   useEffect(() => {

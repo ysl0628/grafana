@@ -6,15 +6,17 @@ import { User } from 'app/types/user';
 export interface AiAssistantMessage {
   id: string;
   role: 'user' | 'assistant' | 'system' | 'tool';
-  content: Array<{
-    type: 'text' | 'tool-call' | 'image';
-    text?: string;
-    toolCallId?: string;
-    toolName?: string;
-    args?: any;
-    argsText?: string;
-    image?: string;
-  }> | string; // Allow string for backward compatibility
+  content:
+    | Array<{
+        type: 'text' | 'tool-call' | 'image';
+        text?: string;
+        toolCallId?: string;
+        toolName?: string;
+        args?: any;
+        argsText?: string;
+        image?: string;
+      }>
+    | string; // Allow string for backward compatibility
   timestamp: Date;
   createdAt?: string;
   tools?: ToolCall[];
@@ -121,6 +123,7 @@ export interface AiAssistantHookResult {
   archiveThread: (threadId: string) => Promise<void>;
   unarchiveThread: (threadId: string) => Promise<void>;
   clearError: () => void;
+  onRename: (threadId: string, newTitle: string) => Promise<void>;
 }
 
 export interface ThreadManagementHookResult {

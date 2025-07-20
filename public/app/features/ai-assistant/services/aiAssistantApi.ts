@@ -90,25 +90,21 @@ const convertToolMessage = (toolMessage: LangChainMessage) => {
  * Create a new conversation thread using LangGraph SDK
  */
 export const createThread = async (): Promise<CreateThreadResponse> => {
-  const thread = await client.threads.create();
-  return {
-    thread_id: thread.thread_id,
-    created_at: thread.created_at,
-  };
+  return client.threads.create();
 };
 
 /**
  * Create a new thread with initial context using LangGraph SDK
  */
-export const createNewThread = async (context?: GrafanaContext): Promise<CreateThreadResponse> => {
-  const thread = await client.threads.create({
-    metadata: { grafanaContext: context },
-  });
-  return {
-    thread_id: thread.thread_id,
-    created_at: thread.created_at,
-  };
-};
+// export const createNewThread = async (context?: GrafanaContext): Promise<CreateThreadResponse> => {
+//   const thread = await client.threads.create({
+//     metadata: { grafanaContext: context },
+//   });
+//   return {
+//     thread_id: thread.thread_id,
+//     created_at: thread.created_at,
+//   };
+// };
 
 /**
  * Get thread state using LangGraph SDK
@@ -249,11 +245,8 @@ export const cancelOperation = async (threadId: string): Promise<void> => {
   }
 };
 
-
-
 export default {
   createThread,
-  createNewThread,
   getThreadState,
   switchToThread,
   sendMessage,

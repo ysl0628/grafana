@@ -79,7 +79,14 @@ const MarkdownText: React.FC = () => {
  *
  * Displays a fallback UI for unknown tool calls.
  */
-const ToolFallback: React.FC<{ toolName: string; args: any }> = ({ toolName, args }) => {
+const ToolFallback: React.FC<{ toolName: string; args: any; result?: any }> = ({
+  toolName,
+  args,
+  result,
+  ...props
+}) => {
+  console.log('props', props);
+  console.log('result', result);
   const styles = useStyles2(getStyles);
 
   return (

@@ -1,15 +1,10 @@
 import { type FC, useState, useEffect } from 'react';
-import {
-  ThreadListPrimitive,
-  ThreadListItemPrimitive,
-  useThreadListItemRuntime,
-  useThreadList,
-} from '@assistant-ui/react';
+import { ThreadListPrimitive, ThreadListItemPrimitive, useThreadListItemRuntime } from '@assistant-ui/react';
 import { css } from '@emotion/css';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Icon, Button, Input } from '@grafana/ui';
+import { useStyles2, Button, Input } from '@grafana/ui';
 
 /**
  * AI Assistant History Component
@@ -165,12 +160,11 @@ const AiAssistantThreadListItemArchive: FC = () => {
   );
 };
 
-const AiAssistantThreadNew: FC = () => {
+export const AiAssistantThreadNew: FC = () => {
   const styles = useStyles2(getStyles);
 
   return (
     <ThreadListPrimitive.New asChild>
-      {/* <Tooltip content={t('ai-assistant.thread.new-thread-tooltip', 'New Thread')}> */}
       <Button
         variant="primary"
         fill="outline"
@@ -180,7 +174,21 @@ const AiAssistantThreadNew: FC = () => {
       >
         {t('ai-assistant.thread.new-thread', 'New Thread')}
       </Button>
-      {/* </Tooltip> */}
+    </ThreadListPrimitive.New>
+  );
+};
+
+export const ThreadNewButton: FC = () => {
+  return (
+    <ThreadListPrimitive.New asChild>
+      <Button
+        variant="secondary"
+        size="sm"
+        fill="text"
+        icon="plus"
+        tooltip={t('ai-assistant.new-thread.tooltip', 'New Thread')}
+        aria-label={t('ai-assistant.thread.new-thread-aria-label', 'New Thread')}
+      />
     </ThreadListPrimitive.New>
   );
 };

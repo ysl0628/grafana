@@ -1,32 +1,31 @@
-import { useExternalMessageConverter } from "@assistant-ui/react";
-import type { LangChainMessage } from "./types";
-import type { ToolCallMessagePart } from "@assistant-ui/react";
-import type { ThreadUserMessage } from "@assistant-ui/react";
+import { useExternalMessageConverter } from '@assistant-ui/react';
+import type { LangChainMessage } from './types';
+import type { ToolCallMessagePart } from '@assistant-ui/react';
+import type { ThreadUserMessage } from '@assistant-ui/react';
 
-const contentToParts = (content: LangChainMessage["content"]) => {
-  if (typeof content === "string")
-    return [{ type: "text" as const, text: content }];
+const contentToParts = (content: LangChainMessage['content']) => {
+  if (typeof content === 'string') return [{ type: 'text' as const, text: content }];
   return content
-    .map((part): ThreadUserMessage["content"][number] | null => {
+    .map((part): ThreadUserMessage['content'][number] | null => {
       const type = part.type;
       switch (type) {
-        case "text":
-          return { type: "text", text: part.text };
-        case "text_delta":
-          return { type: "text", text: part.text };
-        case "image_url":
-          if (typeof part.image_url === "string") {
-            return { type: "image", image: part.image_url };
+        case 'text':
+          return { type: 'text', text: part.text };
+        case 'text_delta':
+          return { type: 'text', text: part.text };
+        case 'image_url':
+          if (typeof part.image_url === 'string') {
+            return { type: 'image', image: part.image_url };
           } else {
             return {
-              type: "image",
+              type: 'image',
               image: part.image_url.url,
             };
           }
 
-        case "tool_use":
+        case 'tool_use':
           return null;
-        case "input_json_delta":
+        case 'input_json_delta':
           return null;
         default:
           const _exhaustiveCheck: never = type;
@@ -36,49 +35,46 @@ const contentToParts = (content: LangChainMessage["content"]) => {
     .filter((a) => a !== null);
 };
 
-export const convertLangChainMessages: useExternalMessageConverter.Callback<
-  LangChainMessage
-> = (message) => {
+export const convertLangChainMessages: useExternalMessageConverter.Callback<LangChainMessage> = (message) => {
+  console.log('message', message);
   switch (message.type) {
-    case "system":
+    case 'system':
       return {
-        role: "system",
+        role: 'system',
         id: message.id,
-        content: [{ type: "text", text: message.content }],
+        content: [{ type: 'text', text: message.content }],
       };
-    case "human":
+    case 'human':
       return {
-        role: "user",
+        role: 'user',
         id: message.id,
         content: contentToParts(message.content),
       };
-    case "ai":
+    case 'ai':
       return {
-        role: "assistant",
+        role: 'assistant',
         id: message.id,
         content: [
           ...contentToParts(message.content),
           ...(message.tool_calls?.map(
             (chunk): ToolCallMessagePart => ({
-              type: "tool-call",
+              type: 'tool-call',
               toolCallId: chunk.id,
               toolName: chunk.name,
               args: chunk.args,
-              argsText:
-                message.tool_call_chunks?.find((c) => c.id === chunk.id)
-                  ?.args ?? JSON.stringify(chunk.args),
-            }),
+              argsText: message.tool_call_chunks?.find((c) => c.id === chunk.id)?.args ?? JSON.stringify(chunk.args),
+            })
           ) ?? []),
         ],
       };
-    case "tool":
+    case 'tool':
       return {
-        role: "tool",
+        role: 'tool',
         toolName: message.name,
         toolCallId: message.tool_call_id,
         result: message.content,
         artifact: message.artifact,
-        isError: message.status === "error",
+        isError: message.status === 'error',
       };
   }
 };

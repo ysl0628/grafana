@@ -5,7 +5,7 @@ import { LangChainMessage, useLangGraphRuntime } from './runtimes/langgraph';
 
 import { config, locationService } from '@grafana/runtime';
 
-import { createThread, sendMessage, getThreadState, createNewThread } from '../services/aiAssistantApi';
+import { createThread, sendMessage, getThreadState } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import { useGrafanaContext } from '../utils/grafanaContext';
 
@@ -112,15 +112,10 @@ const useAiAssistantRuntime = () => {
   }, []);
 
   // New thread creation handler
-  const handleSwitchToNewThread = useCallback(async () => {
-    try {
-      const response = await createNewThread();
-      threadIdRef.current = response.thread_id;
-    } catch (error) {
-      console.error('Error creating new thread:', error);
-      throw error;
-    }
-  }, []);
+  const handleSwitchToNewThread = async () => {
+    const { thread_id } = await createThread();
+    threadIdRef.current = thread_id;
+  };
 
   // Custom event handler for Grafana-specific events
   const handleCustomEvent = useCallback((event: string, data: any) => {

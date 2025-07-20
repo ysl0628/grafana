@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
@@ -22,9 +22,9 @@ import { AiAssistantContextProvider } from '../providers/AiAssistantContextProvi
 import { AiAssistantRuntimeProvider } from '../providers/AiAssistantRuntimeProvider';
 import { AiAssistantComponentProps } from '../types/aiAssistant';
 
-import { AiAssistantHistory } from './AiAssistantHistory';
+import { AiAssistantHistory, ThreadNewButton } from './AiAssistantHistory';
 import { AiAssistantThread } from './AiAssistantThread';
-import { useThread, useThreadListItem, useThreadRuntime } from '@assistant-ui/react';
+import { useThread, useThreadListItem } from '@assistant-ui/react';
 
 /**
  * AI Assistant Sidebar Component
@@ -56,20 +56,20 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
+  const thread = useThreadListItem();
 
   const { isLoading, error, clearError } = useAiAssistant();
   const currentThread = useThread();
-  const { threads } = useAiAssistant();
-
-  const title = threads[0]?.title;
+  console.log('currentThread', currentThread);
+  const title = thread.title || t('ai-assistant.title', 'AI Assistant');
 
   const handleNewThread = () => {
     setIsHistoryOpen(false);
   };
 
-  const handleClearAllThreads = () => {
-    setShowClearConfirm(true);
-  };
+  // const handleClearAllThreads = () => {
+  //   setShowClearConfirm(true);
+  // };
 
   const handleConfirmClearAll = () => {
     // Implementation for clearing all threads
@@ -112,15 +112,7 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
           </ToolbarButton>
         </Box>
         <Stack alignItems="center" gap={0.5}>
-          <Button
-            variant="secondary"
-            size="sm"
-            fill="text"
-            icon="plus"
-            tooltip={t('ai-assistant.new-thread.tooltip', 'New Thread')}
-            onClick={handleNewThread}
-            aria-label={t('ai-assistant.new-thread.aria-label', 'New Thread')}
-          />
+          <ThreadNewButton />
           {onClose && (
             <Button
               variant="secondary"

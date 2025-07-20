@@ -241,8 +241,8 @@ const AiAssistantComposer: React.FC = () => {
 
       {/* 輸入區域 */}
       <ComposerPrimitive.Input
-        value={inputValue}
-        onChange={handleInputChange}
+        // value={inputValue}
+        // onChange={handleInputChange}
         placeholder={t('ai-assistant.composer.placeholder', 'Ask questions, go places, make changes, anything.')}
         className={styles.composerInput}
         autoFocus

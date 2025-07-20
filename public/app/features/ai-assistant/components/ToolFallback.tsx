@@ -39,6 +39,10 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
         icon: 'gf-ml',
         statusText: t('ai-assistant.tool.status.think', '思考完成'),
       },
+      error: {
+        icon: 'times',
+        statusText: null,
+      },
       default: {
         icon: 'cog',
         statusText: t('ai-assistant.tool.status.pending', '準備中'),
@@ -59,6 +63,8 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
       }
 
       if (status?.type === 'incomplete') {
+        if (status?.reason === 'error') return 'error';
+
         return 'incomplete';
       }
 
@@ -81,9 +87,11 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
             className={`${styles.statusIcon} ${status?.type === 'running' ? styles.spinningIcon : ''}`}
           />
           <Text variant="bodySmall">{toolName}</Text>
-          <div className={styles.statusBadge}>
-            <Text variant="bodySmall">{statusConfig.statusText}</Text>
-          </div>
+          {statusConfig?.statusText && (
+            <div className={styles.statusBadge}>
+              <Text variant="bodySmall">{statusConfig.statusText}</Text>
+            </div>
+          )}
         </div>
 
         <Button
@@ -103,43 +111,47 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
       {/* Collapsible details section */}
       {!isCollapsed && (
         <div className={styles.detailsContainer}>
-          {/* Input parameters section */}
-          {toolName !== 'think' && (
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionIndicator} />
-                <Text variant="bodySmall">{t('ai-assistant.tool.input-params', '輸入參數')}</Text>
-              </div>
-              <div className={styles.codeBlock}>
-                <pre className={styles.codeContent}>{argsText}</pre>
-              </div>
+          {toolName === 'think' ? (
+            <div className={styles.thinkResult}>
+              {typeof result === 'string' ? result : JSON.stringify(result, null, 2)}
             </div>
-          )}
-
-          {/* Output results section */}
-          {result !== undefined && (
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={`${styles.sectionIndicator} ${styles.resultIndicator}`} />
-                <Text variant="bodySmall">{t('ai-assistant.tool.execution-result', '執行結果')}</Text>
+          ) : (
+            <>
+              <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionIndicator} />
+                  <Text variant="bodySmall">{t('ai-assistant.tool.input-params', '輸入參數')}</Text>
+                </div>
+                <div className={styles.codeBlock}>
+                  <pre className={styles.codeContent}>{argsText}</pre>
+                </div>
               </div>
-              <div className={`${styles.codeBlock} ${styles.resultBlock}`}>
-                <pre className={styles.codeContent}>
-                  {typeof result === 'string' ? result : JSON.stringify(result, null, 2)}
-                </pre>
+              {/* Output results section */}
+              {result !== undefined && (
+                <div className={styles.section}>
+                  <div className={styles.sectionHeader}>
+                    <div className={`${styles.sectionIndicator} ${styles.resultIndicator}`} />
+                    <Text variant="bodySmall">{t('ai-assistant.tool.execution-result', '執行結果')}</Text>
+                  </div>
+                  <div className={`${styles.codeBlock} ${styles.resultBlock}`}>
+                    <pre className={styles.codeContent}>
+                      {typeof result === 'string' ? result : JSON.stringify(result, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+              {/* Tool metadata footer */}
+              <div className={styles.footer}>
+                <Text variant="bodySmall">
+                  {t('ai-assistant.tool.tool-type', '工具類型')}:{' '}
+                  {t('ai-assistant.tool.general-processor', '通用處理器')}
+                </Text>
+                <Text variant="bodySmall">
+                  {t('ai-assistant.tool.status-label', '狀態')}: {statusConfig.statusText}
+                </Text>
               </div>
-            </div>
+            </>
           )}
-
-          {/* Tool metadata footer */}
-          <div className={styles.footer}>
-            <Text variant="bodySmall">
-              {t('ai-assistant.tool.tool-type', '工具類型')}: {t('ai-assistant.tool.general-processor', '通用處理器')}
-            </Text>
-            <Text variant="bodySmall">
-              {t('ai-assistant.tool.status-label', '狀態')}: {statusConfig.statusText}
-            </Text>
-          </div>
         </div>
       )}
     </div>
@@ -219,9 +231,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.secondary,
   }),
   codeBlock: css({
-    backgroundColor: theme.colors.background.canvas,
     borderRadius: theme.shape.radius.default,
-    padding: theme.spacing(1.5),
     overflow: 'auto',
     maxHeight: '200px',
   }),
@@ -230,7 +240,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   codeContent: css({
     fontFamily: theme.typography.fontFamilyMonospace,
-    fontSize: theme.typography.size.sm,
+    fontSize: theme.typography.bodySmall.fontSize,
     lineHeight: 1.4,
     color: theme.colors.text.primary,
     margin: 0,
@@ -249,35 +259,14 @@ const getStyles = (theme: GrafanaTheme2) => ({
   metaText: css({
     color: theme.colors.text.secondary,
   }),
-  // Status-specific background colors
-  runningBg: css({
-    backgroundColor: theme.colors.info.transparent,
-    borderColor: theme.colors.info.border,
-  }),
-  completeBg: css({
-    backgroundColor: theme.colors.success.transparent,
-    borderColor: theme.colors.success.border,
-  }),
-  incompleteBg: css({
-    backgroundColor: theme.colors.warning.transparent,
-    borderColor: theme.colors.warning.border,
-  }),
-  defaultBg: css({
-    backgroundColor: theme.colors.secondary.transparent,
-    borderColor: theme.colors.border.medium,
-  }),
-  // Status-specific text colors
-  runningText: css({
-    color: theme.colors.info.text,
-  }),
-  completeText: css({
-    color: theme.colors.success.text,
-  }),
-  incompleteText: css({
-    color: theme.colors.warning.text,
-  }),
-  defaultText: css({
-    color: theme.colors.text.primary,
+  thinkResult: css({
+    fontSize: theme.typography.bodySmall.fontSize,
+    lineHeight: 1.4,
+    padding: theme.spacing(1.5),
+    overflow: 'auto',
+    maxHeight: '200px',
+    fontFamily: theme.typography.fontFamilyMonospace,
+    color: theme.colors.text.disabled,
   }),
 });
 

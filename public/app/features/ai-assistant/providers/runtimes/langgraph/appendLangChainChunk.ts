@@ -70,7 +70,6 @@ export const appendLangChainChunk = (
     try {
       // Ensure valid chunk index
       if (!chunk.index || chunk.index < 1) {
-        console.warn('Invalid tool call chunk index:', chunk.index);
         continue;
       }
 

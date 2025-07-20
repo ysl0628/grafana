@@ -152,7 +152,7 @@ const AiAssistantUserMessage: React.FC = () => {
         <MessagePrimitive.Content />
         <div className={styles.actionContainer}>
           <BranchPicker />
-          <UserActionBar />
+          {/* <UserActionBar /> */}
         </div>
       </div>
     </MessagePrimitive.Root>
@@ -239,8 +239,6 @@ const AiAssistantComposer: React.FC = () => {
 
       {/* 輸入區域 */}
       <ComposerPrimitive.Input
-        // value={inputValue}
-        // onChange={handleInputChange}
         placeholder={t('ai-assistant.composer.placeholder', 'Ask questions, go places, make changes, anything.')}
         className={styles.composerInput}
         autoFocus
@@ -436,14 +434,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexDirection: 'column',
     padding: theme.spacing(2),
     wordBreak: 'break-word',
-    fontSize: theme.typography.body.fontSize,
+    fontSize: theme.typography.bodySmall.fontSize,
     lineHeight: 1.6,
-    [theme.transitions.handleMotion('no-preference')]: {
-      transition: 'all 0.2s ease',
-    },
-    '&:hover': {
-      transform: 'translateY(-1px)',
-    },
     '& > p': {
       margin: 0,
     },

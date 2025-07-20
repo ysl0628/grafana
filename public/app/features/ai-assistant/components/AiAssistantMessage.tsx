@@ -3,7 +3,8 @@ import {
   ActionBarPrimitive,
   BranchPickerPrimitive,
   ErrorPrimitive,
-  // useMessage,
+  useMessage,
+  TextMessagePart,
 } from '@assistant-ui/react';
 import {
   type CodeHeaderProps,
@@ -210,6 +211,8 @@ const NavigationTool: React.FC<{ args: { url: string }; isLoading: boolean }> = 
  */
 const AssistantActionBar: React.FC = () => {
   const styles = useStyles2(getStyles);
+  const { isCopied, copyToClipboard } = useCopyToClipboard();
+  const message = useMessage();
 
   return (
     <ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className={styles.actionBar}>
@@ -218,8 +221,9 @@ const AssistantActionBar: React.FC = () => {
           <Button
             variant="secondary"
             size="sm"
-            icon="copy"
+            icon={isCopied ? 'check' : 'copy'}
             aria-label={t('ai-assistant.message.copy-aria-label', 'Copy message')}
+            onClick={() => copyToClipboard(JSON.stringify((message.content as TextMessagePart[])[0]?.text, null, 2))}
           />
         </Tooltip>
       </ActionBarPrimitive.Copy>

@@ -36,7 +36,6 @@ const contentToParts = (content: LangChainMessage['content']) => {
 };
 
 export const convertLangChainMessages: useExternalMessageConverter.Callback<LangChainMessage> = (message) => {
-  console.log('message', message);
   switch (message.type) {
     case 'system':
       return {

@@ -4,13 +4,14 @@ import {
   MessagePrimitive,
   ActionBarPrimitive,
   BranchPickerPrimitive,
+  useThread,
 } from '@assistant-ui/react';
 import { css } from '@emotion/css';
 import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Icon, Button, Stack, Text, Tooltip, TextArea } from '@grafana/ui';
+import { useStyles2, Icon, Button, Stack, Text, Tooltip, TextArea, LoadingBar } from '@grafana/ui';
 
 import { AiAssistantMessage } from './AiAssistantMessage';
 
@@ -220,14 +221,11 @@ const AiAssistantEditComposer: React.FC = () => {
  */
 const AiAssistantComposer: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const [inputValue, setInputValue] = useState('');
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(e.target.value);
-  };
+  const { isRunning } = useThread();
 
   return (
     <ComposerPrimitive.Root className={styles.composer}>
+      {isRunning && <LoadingBar width={100} />}
       {/* Header 區域 */}
       <div className={styles.composerHeader}>
         <Button

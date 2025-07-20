@@ -17,7 +17,8 @@ import { css } from '@emotion/css';
 import React, { useState, FC } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Icon, Button, Stack, Text, Tooltip, Alert, CodeEditor, Spinner } from '@grafana/ui';
+import { useStyles2, Button, Stack, Text, Tooltip, Alert, CodeEditor, Spinner } from '@grafana/ui';
+import { ToolFallback } from './ToolFallback';
 
 /**
  * AI Assistant Message Component
@@ -70,34 +71,6 @@ const MarkdownText: React.FC = () => {
   return (
     <div className={styles.textContent}>
       <MarkdownTextPrimitive remarkPlugins={[remarkGfm]} className="aui-md" components={defaultComponents} />
-    </div>
-  );
-};
-
-/**
- * Tool Fallback Component
- *
- * Displays a fallback UI for unknown tool calls.
- */
-const ToolFallback: React.FC<{ toolName: string; args: any; result?: any }> = ({
-  toolName,
-  args,
-  result,
-  ...props
-}) => {
-  console.log('props', props);
-  console.log('result', result);
-  const styles = useStyles2(getStyles);
-
-  return (
-    <div className={styles.toolFallback}>
-      <Alert title={t('ai-assistant.tool.tool-title', 'Tool: {{toolName}}', { toolName })} severity="info">
-        <Text variant="bodySmall">{t('ai-assistant.tool.execution-in-progress', 'Tool execution in progress...')}</Text>
-        <details>
-          <summary>{t('ai-assistant.tool.arguments', 'Arguments')}</summary>
-          <pre>{JSON.stringify(args, null, 2)}</pre>
-        </details>
-      </Alert>
     </div>
   );
 };
@@ -491,10 +464,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   toolResult: css({
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-  }),
-  toolFallback: css({
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
   }),

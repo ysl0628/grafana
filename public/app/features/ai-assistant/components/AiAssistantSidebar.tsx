@@ -58,8 +58,10 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const historyRef = useRef<HTMLDivElement>(null);
   const thread = useThreadListItem();
 
-  const { isLoading, error, clearError } = useAiAssistant();
+  const { error, clearError } = useAiAssistant();
+
   const currentThread = useThread();
+  const { isRunning } = currentThread;
   console.log('currentThread', currentThread);
   const title = thread.title || t('ai-assistant.title', 'AI Assistant');
 
@@ -162,18 +164,18 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
       )}
 
       {/* Loading State */}
-      {isLoading && (
+      {/* {isRunning && (
         <div className={styles.loadingContainer}>
           <Stack alignItems="center" gap={1}>
             <Spinner size="md" />
             <Text variant="body">{t('ai-assistant.loading', 'Loading AI Assistant...')}</Text>
           </Stack>
         </div>
-      )}
+      )} */}
 
       {/* Main Thread Interface */}
       <div className={styles.threadContainer}>
-        {currentThread || isLoading ? (
+        {currentThread || isRunning ? (
           <AiAssistantThread />
         ) : (
           <div className={styles.loadingContainer}>

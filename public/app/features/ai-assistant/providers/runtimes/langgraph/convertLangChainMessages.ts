@@ -55,15 +55,30 @@ export const convertLangChainMessages: useExternalMessageConverter.Callback<Lang
         id: message.id,
         content: [
           ...contentToParts(message.content),
-          ...(message.tool_calls?.map(
-            (chunk): ToolCallMessagePart => ({
-              type: 'tool-call',
-              toolCallId: chunk.id,
-              toolName: chunk.name,
-              args: chunk.args,
-              argsText: message.tool_call_chunks?.find((c) => c.id === chunk.id)?.args ?? JSON.stringify(chunk.args),
+          ...(message.tool_calls
+            ?.map((chunk): ToolCallMessagePart | null => {
+              try {
+                // Validate tool call has required fields
+                if (!chunk.id || !chunk.name) {
+                  console.log('chunk', chunk);
+                  console.warn('Invalid tool call missing id or name:', chunk);
+                  return null;
+                }
+                return {
+                  type: 'tool-call',
+                  toolCallId: chunk.id,
+                  toolName: chunk.name,
+                  args: chunk.args || {},
+                  argsText:
+                    message.tool_call_chunks?.find((c) => c.id === chunk.id)?.args ??
+                    (chunk.args ? JSON.stringify(chunk.args) : '{}'),
+                };
+              } catch (error) {
+                console.error('Error converting tool call:', error, chunk);
+                return null;
+              }
             })
-          ) ?? []),
+            .filter((part): part is ToolCallMessagePart => part !== null) ?? []),
         ],
       };
     case 'tool':

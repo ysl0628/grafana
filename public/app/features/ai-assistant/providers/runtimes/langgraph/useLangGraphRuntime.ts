@@ -23,7 +23,6 @@ import {
 } from './useLangGraphMessages';
 import type { AttachmentAdapter } from '@assistant-ui/react';
 import type { AppendMessage } from '@assistant-ui/react';
-import type { ExternalStoreAdapter } from '@assistant-ui/react';
 import type { FeedbackAdapter } from '@assistant-ui/react';
 import type { SpeechSynthesisAdapter } from '@assistant-ui/react';
 import { appendLangChainChunk } from './appendLangChainChunk';
@@ -34,14 +33,17 @@ const getPendingToolCalls = (messages: LangChainMessage[]) => {
   for (const message of messages) {
     if (message.type === 'ai') {
       for (const toolCall of message.tool_calls ?? []) {
+        console.log('Found tool call in AI message:', toolCall.name, toolCall.id);
         pendingToolCalls.set(toolCall.id, toolCall);
       }
     }
     if (message.type === 'tool') {
+      console.log('Found tool response:', message.name, message.tool_call_id);
       pendingToolCalls.delete(message.tool_call_id);
     }
   }
 
+  console.log('Pending tool calls:', [...pendingToolCalls.values()]);
   return [...pendingToolCalls.values()];
 };
 
@@ -181,7 +183,19 @@ export const useLangGraphRuntime = ({
   );
 
   const threadMessages = useExternalMessageConverter({
-    callback: convertLangChainMessages,
+    callback: (message) => {
+      try {
+        return convertLangChainMessages(message);
+      } catch (error) {
+        console.error('Error converting message:', error, message);
+        // Return a safe fallback message to prevent crash
+        return {
+          role: 'assistant' as const,
+          id: message.id || `fallback-${Date.now()}`,
+          content: [{ type: 'text' as const, text: 'Error processing message' }],
+        };
+      }
+    },
     messages,
     isRunning,
   });
@@ -300,6 +314,8 @@ export const useLangGraphRuntime = ({
       );
     },
     onAddToolResult: async ({ toolCallId, toolName, result, isError, artifact }) => {
+      console.log('onAddToolResult called:', { toolCallId, toolName, result, isError });
+
       if (processedToolCallsRef.current.has(toolCallId)) {
         console.log(`Tool call ${toolCallId} already processed, skipping`);
         return;
@@ -307,21 +323,27 @@ export const useLangGraphRuntime = ({
 
       processedToolCallsRef.current.add(toolCallId);
 
-      // TODO parallel human in the loop calls
-      await handleSendMessage(
-        [
-          {
-            type: 'tool',
-            name: toolName,
-            tool_call_id: toolCallId,
-            content: JSON.stringify(result),
-            artifact,
-            status: isError ? 'error' : 'success',
-          },
-        ],
-        // TODO reuse runconfig here!
-        {}
-      );
+      try {
+        // TODO parallel human in the loop calls
+        await handleSendMessage(
+          [
+            {
+              type: 'tool',
+              name: toolName,
+              tool_call_id: toolCallId,
+              content: JSON.stringify(result),
+              artifact,
+              status: isError ? 'error' : 'success',
+            },
+          ],
+          // TODO reuse runconfig here!
+          {}
+        );
+      } catch (error) {
+        console.error('Error sending tool result:', error, { toolCallId, toolName });
+        // Remove from processed set so it can be retried
+        processedToolCallsRef.current.delete(toolCallId);
+      }
     },
     onCancel: unstable_allowCancellation
       ? async () => {

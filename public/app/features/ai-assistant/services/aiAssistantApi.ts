@@ -12,7 +12,7 @@ import { LangChainMessage } from '../providers/runtimes/langgraph/types';
 
 // LangGraph client configuration
 const client = new Client({
-  apiUrl: config?.aiAssistantApiUrl || 'http://localhost:2024',
+  apiUrl: config?.aiAssistantApiUrl || 'https://grafana-llm-agent.zeabur.app',
 });
 
 interface CreateThreadResponse {

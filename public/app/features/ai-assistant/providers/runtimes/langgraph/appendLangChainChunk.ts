@@ -1,8 +1,4 @@
-import type {
-  LangChainMessage,
-  LangChainMessageChunk,
-  MessageContentText,
-} from "./types";
+import type { LangChainMessage, LangChainMessageChunk, MessageContentText } from './types';
 
 // Simple implementation of parsePartialJsonObject
 const parsePartialJsonObject = (jsonString: string) => {
@@ -10,13 +6,8 @@ const parsePartialJsonObject = (jsonString: string) => {
     return JSON.parse(jsonString);
   } catch (e) {
     // Try to parse partial JSON by adding closing braces/brackets
-    const attempts = [
-      jsonString + '}',
-      jsonString + '"}',
-      jsonString + ']}',
-      jsonString + '}]}',
-    ];
-    
+    const attempts = [jsonString + '}', jsonString + '"}', jsonString + ']}', jsonString + '}]}'];
+
     for (const attempt of attempts) {
       try {
         return JSON.parse(attempt);
@@ -30,47 +21,45 @@ const parsePartialJsonObject = (jsonString: string) => {
 
 export const appendLangChainChunk = (
   prev: LangChainMessage | undefined,
-  curr: LangChainMessage | LangChainMessageChunk,
+  curr: LangChainMessage | LangChainMessageChunk
 ): LangChainMessage => {
-  if (curr.type !== "AIMessageChunk") {
+  if (curr.type !== 'AIMessageChunk') {
     return curr;
   }
 
-  if (!prev || prev.type !== "ai") {
+  if (!prev || prev.type !== 'ai') {
     return {
       ...curr,
-      type: curr.type.replace("MessageChunk", "").toLowerCase(),
+      type: curr.type.replace('MessageChunk', '').toLowerCase(),
     } as LangChainMessage;
   }
 
   const newContent =
-    typeof prev.content === "string"
-      ? [{ type: "text" as const, text: prev.content }]
-      : [...prev.content];
+    typeof prev.content === 'string' ? [{ type: 'text' as const, text: prev.content }] : [...prev.content];
 
-  if (typeof curr?.content === "string") {
+  if (typeof curr?.content === 'string') {
     const lastIndex = newContent.length - 1;
-    if (newContent[lastIndex]?.type === "text") {
+    if (newContent[lastIndex]?.type === 'text') {
       (newContent[lastIndex] as MessageContentText).text =
         (newContent[lastIndex] as MessageContentText).text + curr.content;
     } else {
-      newContent.push({ type: "text", text: curr.content });
+      newContent.push({ type: 'text', text: curr.content });
     }
   } else if (Array.isArray(curr.content)) {
     const lastIndex = newContent.length - 1;
     for (const item of curr.content) {
-      if (!("type" in item)) {
+      if (!('type' in item)) {
         continue;
       }
 
-      if (item.type === "text") {
-        if (newContent[lastIndex]?.type === "text") {
+      if (item.type === 'text') {
+        if (newContent[lastIndex]?.type === 'text') {
           (newContent[lastIndex] as MessageContentText).text =
             (newContent[lastIndex] as MessageContentText).text + item.text;
         } else {
-          newContent.push({ type: "text", text: item.text });
+          newContent.push({ type: 'text', text: item.text });
         }
-      } else if (item.type === "image_url") {
+      } else if (item.type === 'image_url') {
         newContent.push(item);
       }
     }
@@ -78,16 +67,36 @@ export const appendLangChainChunk = (
 
   const newToolCalls = [...(prev.tool_calls ?? [])];
   for (const chunk of curr.tool_call_chunks ?? []) {
-    const existing = newToolCalls[chunk.index - 1] ?? { argsText: "" };
-    const newArgsText = existing.argsText + chunk.args;
-    newToolCalls[chunk.index - 1] = {
-      ...chunk,
-      ...existing,
-      argsText: newArgsText,
-      args:
-        parsePartialJsonObject(newArgsText) ??
-        ("args" in existing ? existing.args : {}),
-    };
+    try {
+      // Ensure valid chunk index
+      if (!chunk.index || chunk.index < 1) {
+        console.warn('Invalid tool call chunk index:', chunk.index);
+        continue;
+      }
+
+      const existing = newToolCalls[chunk.index - 1] ?? { argsText: '' };
+      const newArgsText = (existing.argsText || '') + (chunk.args || '');
+
+      // Parse args with fallback
+      let parsedArgs;
+      try {
+        parsedArgs = parsePartialJsonObject(newArgsText) || ('args' in existing ? existing.args : {});
+      } catch (parseError) {
+        console.warn('Failed to parse tool call args:', parseError, 'argsText:', newArgsText);
+        parsedArgs = 'args' in existing ? existing.args : {};
+      }
+
+      newToolCalls[chunk.index - 1] = {
+        // id: chunk.id,
+        // name: chunk.name,
+        ...existing,
+        argsText: newArgsText,
+        args: parsedArgs,
+      };
+    } catch (error) {
+      console.error('Error processing tool call chunk:', error, chunk);
+      // Continue processing other chunks
+    }
   }
 
   return {

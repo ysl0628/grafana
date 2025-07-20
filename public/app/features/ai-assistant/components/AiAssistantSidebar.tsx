@@ -50,7 +50,7 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
 
   const currentThread = useThread();
   const { isRunning } = currentThread;
-  console.log('currentThread', currentThread);
+  // console.log('currentThread', currentThread);
   const title = thread.title || t('ai-assistant.title', 'AI Assistant');
 
   const handleClearAllThreads = () => {

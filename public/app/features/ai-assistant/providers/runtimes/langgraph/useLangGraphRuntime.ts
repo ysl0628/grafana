@@ -196,25 +196,17 @@ export const useLangGraphRuntime = ({
       };
 
   // Memoized thread mappings to prevent infinite loop warnings
-  const mappedThreads = useMemo(
-    () =>
-      threads.map((t) => ({
-        threadId: t.threadId,
-        title: t.title || 'New Chat',
-        status: 'regular' as const,
-      })),
-    [threads]
-  );
+  const mappedThreads = threads.map((t) => ({
+    threadId: t.threadId,
+    title: t.title || 'New Chat',
+    status: 'regular' as const,
+  }));
 
-  const mappedArchivedThreads = useMemo(
-    () =>
-      archivedThreads.map((t) => ({
-        threadId: t.threadId,
-        title: t.title || 'New Chat',
-        status: 'archived' as const,
-      })),
-    [archivedThreads]
-  );
+  const mappedArchivedThreads = archivedThreads.map((t) => ({
+    threadId: t.threadId,
+    title: t.title || 'New Chat',
+    status: 'archived' as const,
+  }));
 
   // Memoized onSwitchToNewThread callback
   const memoizedOnSwitchToNewThread: (() => Promise<void>) | undefined = !onSwitchToNewThread
@@ -228,17 +220,14 @@ export const useLangGraphRuntime = ({
       };
 
   // Memoized thread list to prevent infinite loop warnings
-  const threadList = useMemo<NonNullable<ExternalStoreAdapter['adapters']>['threadList']>(
-    () => ({
-      threads: mappedThreads,
-      threadId,
-      archivedThreads: mappedArchivedThreads,
-      onSwitchToNewThread: memoizedOnSwitchToNewThread,
-      onSwitchToThread: switchToThread,
-      onRename,
-    }),
-    [mappedThreads, mappedArchivedThreads, threadId, memoizedOnSwitchToNewThread, switchToThread]
-  );
+  const threadList = {
+    threads: mappedThreads,
+    threadId,
+    archivedThreads: mappedArchivedThreads,
+    onSwitchToNewThread: memoizedOnSwitchToNewThread,
+    onSwitchToThread: switchToThread,
+    onRename,
+  };
 
   const loadingRef = useRef(false);
   const threadListItemRuntime = useThreadListItemRuntime({ optional: true });
@@ -256,15 +245,12 @@ export const useLangGraphRuntime = ({
   }, []);
 
   // Memoized adapters to prevent infinite loop warnings
-  const adapters = useMemo(
-    () => ({
-      attachments,
-      feedback,
-      speech,
-      threadList,
-    }),
-    [attachments, feedback, speech, threadList]
-  );
+  const adapters = {
+    attachments,
+    feedback,
+    speech,
+    threadList,
+  };
 
   // Memoized extras to prevent infinite loop warnings
   const extras = useMemo(

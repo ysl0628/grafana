@@ -300,14 +300,13 @@ const ThreadScrollToBottom: React.FC = () => {
   return (
     <ThreadPrimitive.ScrollToBottom asChild>
       <div className={styles.scrollToBottom}>
-        <Tooltip content={t('ai-assistant.thread.scroll-to-bottom-tooltip', 'Scroll to bottom')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="arrow-down"
-            aria-label={t('ai-assistant.thread.scroll-to-bottom-aria-label', 'Scroll to bottom')}
-          />
-        </Tooltip>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon="arrow-down"
+          tooltip={t('ai-assistant.thread.scroll-to-bottom-tooltip', 'Scroll to bottom')}
+          aria-label={t('ai-assistant.thread.scroll-to-bottom-aria-label', 'Scroll to bottom')}
+        />
       </div>
     </ThreadPrimitive.ScrollToBottom>
   );

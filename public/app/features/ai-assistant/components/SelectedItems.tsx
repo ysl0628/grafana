@@ -20,81 +20,64 @@ export const SelectedItems: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.itemsList}>
-        {selectedItems.map((item) => {
-          const isItemActive = isActive(item.id);
-          return (
-            <div
-              key={item.id}
-              className={`${styles.item} ${!isItemActive ? styles.itemDisabled : ''}`}
-              onClick={() => handleItemToggle(item.id)}
-            >
-              <div className={styles.itemContent}>
-                <Icon
-                  name={item.icon as any}
-                  size="sm"
-                  className={`${styles.itemIcon} ${!isItemActive ? styles.iconDisabled : ''}`}
-                />
-                <Tooltip content={item.subtitle || item.title}>
-                  <Text variant="bodySmall" color={!isItemActive ? 'secondary' : 'disabled'}>
-                    {item.title}
-                  </Text>
-                </Tooltip>
-              </div>
-              <Button
-                variant="secondary"
+    // <div className={styles.container}>
+    <>
+      {selectedItems.map((item) => {
+        const isItemActive = isActive(item.id);
+        return (
+          <div
+            key={item.id}
+            className={`${styles.item} ${!isItemActive ? styles.itemDisabled : ''}`}
+            onClick={() => handleItemToggle(item.id)}
+          >
+            <div className={styles.itemContent}>
+              <Icon
+                name={item.icon as any}
                 size="sm"
-                fill="text"
-                icon="times"
-                tooltip={t('ai-assistant.selected-items.remove', 'Remove item')}
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering toggle
-                  removeItem(item.id);
-                }}
-                aria-label={t('ai-assistant.selected-items.remove-aria-label', 'Remove {{title}}', {
-                  title: item.title,
-                })}
+                className={`${styles.itemIcon} ${!isItemActive ? styles.iconDisabled : ''}`}
               />
+              <Tooltip content={item.subtitle || item.title}>
+                <Text variant="bodySmall" color={!isItemActive ? 'secondary' : 'disabled'}>
+                  {item.title}
+                </Text>
+              </Tooltip>
             </div>
-          );
-        })}
-      </div>
-    </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              fill="text"
+              icon="times"
+              tooltip={t('ai-assistant.selected-items.remove', 'Remove item')}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent triggering toggle
+                removeItem(item.id);
+              }}
+              aria-label={t('ai-assistant.selected-items.remove-aria-label', 'Remove {{title}}', {
+                title: item.title,
+              })}
+            />
+          </div>
+        );
+      })}
+    </>
   );
 };
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  container: css({
-    display: 'flex',
-    alignItems: 'center',
-    marginLeft: theme.spacing(0.5),
-    flex: 1,
-    minWidth: 0,
-    overflowX: 'auto',
-    overflowY: 'hidden',
-    '&::-webkit-scrollbar': {
-      height: '4px',
-    },
-    '&::-webkit-scrollbar-track': {
-      background: theme.colors.background.secondary,
-      borderRadius: '2px',
-    },
-    '&::-webkit-scrollbar-thumb': {
-      background: theme.colors.border.medium,
-      borderRadius: '2px',
-      '&:hover': {
-        background: theme.colors.border.strong,
-      },
-    },
-  }),
-  itemsList: css({
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-    minWidth: 'min-content',
-    whiteSpace: 'nowrap',
-  }),
+  // container: css({
+  //   display: 'flex',
+  //   alignItems: 'flex-start',
+  //   marginLeft: theme.spacing(0.5),
+  //   flex: 1,
+  //   minWidth: 0,
+  // }),
+  // itemsList: css({
+  //   display: 'flex',
+  //   alignItems: 'flex-start',
+  //   gap: theme.spacing(0.5),
+  //   flexWrap: 'wrap',
+  //   width: '100%',
+  // }),
   item: css({
     display: 'flex',
     alignItems: 'center',

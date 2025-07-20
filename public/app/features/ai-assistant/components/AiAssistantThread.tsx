@@ -7,7 +7,7 @@ import {
   useThread,
 } from '@assistant-ui/react';
 import { css } from '@emotion/css';
-import React, { useState } from 'react';
+import React from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';

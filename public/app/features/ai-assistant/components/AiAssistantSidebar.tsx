@@ -1,29 +1,17 @@
 import { css } from '@emotion/css';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import {
-  useStyles2,
-  Icon,
-  Button,
-  Stack,
-  Text,
-  Spinner,
-  Alert,
-  Modal,
-  ConfirmModal,
-  ToolbarButton,
-  Box,
-} from '@grafana/ui';
+import { useStyles2, Icon, Button, Stack, Text, Spinner, Alert, ConfirmModal, ToolbarButton, Box } from '@grafana/ui';
 
 import { useAiAssistant } from '../hooks/useAiAssistant';
 import { AiAssistantContextProvider } from '../providers/AiAssistantContextProvider';
 import { AiAssistantRuntimeProvider } from '../providers/AiAssistantRuntimeProvider';
 import { AiAssistantComponentProps } from '../types/aiAssistant';
 
-import { AiAssistantHistory, ThreadNewButton } from './AiAssistantHistory';
 import { AiAssistantThread } from './AiAssistantThread';
+import { ThreadDropdown, ThreadNewButton } from './ThreadDropdown';
 import { useThread, useThreadListItem } from '@assistant-ui/react';
 
 /**
@@ -55,7 +43,7 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const styles = useStyles2(getStyles);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const historyRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const thread = useThreadListItem();
 
   const { error, clearError } = useAiAssistant();
@@ -65,13 +53,10 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   console.log('currentThread', currentThread);
   const title = thread.title || t('ai-assistant.title', 'AI Assistant');
 
-  const handleNewThread = () => {
+  const handleClearAllThreads = () => {
+    setShowClearConfirm(true);
     setIsHistoryOpen(false);
   };
-
-  // const handleClearAllThreads = () => {
-  //   setShowClearConfirm(true);
-  // };
 
   const handleConfirmClearAll = () => {
     // Implementation for clearing all threads
@@ -85,6 +70,23 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const closeHistory = () => {
     setIsHistoryOpen(false);
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsHistoryOpen(false);
+      }
+    };
+
+    if (isHistoryOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isHistoryOpen]);
 
   return (
     <div className={styles.content}>
@@ -102,16 +104,19 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
       >
         <Box display="flex" direction="row" alignItems="center" gap={0.5}>
           <Icon name="ai-sparkle" size="sm" />
-          <ToolbarButton
-            variant="default"
-            narrow={true}
-            isOpen={isHistoryOpen}
-            tooltip={t('ai-assistant.history.tooltip', 'Thread History')}
-            onClick={toggleHistory}
-            aria-label={t('ai-assistant.history.aria-label', 'Thread History')}
-          >
-            <Text variant="body">{title || t('ai-assistant.title', 'AI Assistant')}</Text>
-          </ToolbarButton>
+          <div ref={dropdownRef} className={styles.dropdownContainer}>
+            <ToolbarButton
+              variant="default"
+              narrow={true}
+              isOpen={isHistoryOpen}
+              tooltip={t('ai-assistant.history.tooltip', 'Thread History')}
+              onClick={toggleHistory}
+              aria-label={t('ai-assistant.history.aria-label', 'Thread History')}
+            >
+              <Text variant="body">{title || t('ai-assistant.title', 'AI Assistant')}</Text>
+            </ToolbarButton>
+            <ThreadDropdown isOpen={isHistoryOpen} onClose={closeHistory} onClearAll={handleClearAllThreads} />
+          </div>
         </Box>
         <Stack alignItems="center" gap={0.5}>
           <ThreadNewButton />
@@ -128,18 +133,6 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
           )}
         </Stack>
       </Box>
-
-      {/* History Modal */}
-      <Modal
-        title={t('ai-assistant.history.modal-title', 'Thread History')}
-        isOpen={isHistoryOpen}
-        onDismiss={closeHistory}
-        className={styles.historyModal}
-      >
-        <div ref={historyRef} className={styles.historyContent}>
-          <AiAssistantHistory onItemClick={closeHistory} />
-        </div>
-      </Modal>
 
       {/* Clear All Confirmation */}
       <ConfirmModal
@@ -234,15 +227,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
     justifyContent: 'center',
     padding: theme.spacing(4),
   }),
-  historyModal: css({
-    width: '400px',
-    maxWidth: '90vw',
-    maxHeight: '80vh',
-  }),
-  historyContent: css({
-    maxHeight: '60vh',
-    overflowY: 'auto',
-    padding: theme.spacing(1),
+  dropdownContainer: css({
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
   }),
 });
 

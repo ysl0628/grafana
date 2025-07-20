@@ -175,6 +175,19 @@ export const useLangGraphRuntime = ({
         await sendMessage(messages, config);
       } catch (error) {
         console.error('Error streaming messages:', error);
+        
+        // Handle specific error types to prevent crashes
+        if (error instanceof Error) {
+          if (error.message.includes('GraphRecursionError') || error.message.includes('Recursion limit')) {
+            // The onError handler in useLangGraphMessages should handle this
+            console.log('GraphRecursionError handled by stream error handler');
+          } else if (error.name === 'AbortError' || error.message.includes('aborted')) {
+            console.log('Request was cancelled by user');
+          } else {
+            // Let other errors propagate to error handlers
+            throw error;
+          }
+        }
       } finally {
         setIsRunning(false);
       }

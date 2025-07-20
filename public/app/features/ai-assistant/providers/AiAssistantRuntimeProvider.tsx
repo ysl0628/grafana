@@ -47,12 +47,8 @@ const useAiAssistantRuntime = () => {
         }
 
         const threadId = threadIdRef.current;
-        // const grafanaContext = getGrafanaContext();
 
-        // Convert to LangChain format
-        // const langChainMessages = convertMessagesToLangChain(messages);
-
-        // Send messages with context using LangGraph SDK
+        // Send messages with context and abort signal using LangGraph SDK
         const generator = sendMessage({
           threadId,
           messages: messages as unknown as LangChainMessage[],

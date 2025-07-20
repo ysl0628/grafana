@@ -23,22 +23,22 @@ export const SelectedItems: React.FC = () => {
     // <div className={styles.container}>
     <>
       {selectedItems.map((item) => {
-        const isItemActive = isActive(item.id);
+        const isItemActive = isActive(item.uid);
         return (
           <div
             key={item.id}
             className={`${styles.item} ${!isItemActive ? styles.itemDisabled : ''}`}
-            onClick={() => handleItemToggle(item.id)}
+            onClick={() => handleItemToggle(item.uid)}
           >
             <div className={styles.itemContent}>
               <Icon
-                name={item.icon as any}
+                name="database"
                 size="sm"
                 className={`${styles.itemIcon} ${!isItemActive ? styles.iconDisabled : ''}`}
               />
-              <Tooltip content={item.subtitle || item.title}>
+              <Tooltip content={item.name}>
                 <Text variant="bodySmall" color={!isItemActive ? 'secondary' : 'disabled'}>
-                  {item.title}
+                  {item.name}
                 </Text>
               </Tooltip>
             </div>
@@ -50,10 +50,10 @@ export const SelectedItems: React.FC = () => {
               tooltip={t('ai-assistant.selected-items.remove', 'Remove item')}
               onClick={(e) => {
                 e.stopPropagation(); // Prevent triggering toggle
-                removeItem(item.id);
+                removeItem(item.uid);
               }}
               aria-label={t('ai-assistant.selected-items.remove-aria-label', 'Remove {{title}}', {
-                title: item.title,
+                title: item.name,
               })}
             />
           </div>

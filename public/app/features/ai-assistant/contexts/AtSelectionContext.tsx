@@ -1,12 +1,23 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 export interface AtSelectionItem {
-  id: string;
-  type: 'database' | 'table' | 'datasource';
-  title: string;
-  subtitle?: string;
+  id: string | number;
+  type: 'database' | 'table' | 'datasource' | 'loki';
   icon?: string;
-  active?: boolean; // New field to track if item is active/enabled
+  active?: boolean;
+  access: string;
+  basicAuth: boolean;
+  database: string;
+  isDefault: boolean;
+  jsonData: {};
+  name: string;
+  orgId: number;
+  readOnly: boolean;
+  typeLogoUrl: string;
+  typeName: string;
+  uid: string;
+  url: string;
+  user: string;
 }
 
 interface AtSelectionContextType {
@@ -41,18 +52,18 @@ export const AtSelectionProvider: React.FC<AtSelectionProviderProps> = ({ childr
 
   const addItem = useCallback((item: AtSelectionItem) => {
     const itemWithActive = { ...item, active: true };
-    
-    setSelectedItems(prev => {
+
+    setSelectedItems((prev) => {
       // Check if item already exists
-      if (prev.some(existingItem => existingItem.id === item.id)) {
+      if (prev.some((existingItem) => existingItem.uid === item.uid)) {
         return prev;
       }
       return [...prev, itemWithActive];
     });
 
     // Also add to staging for context usage
-    setStagingItems(prev => {
-      if (prev.some(existingItem => existingItem.id === item.id)) {
+    setStagingItems((prev) => {
+      if (prev.some((existingItem) => existingItem.uid === item.uid)) {
         return prev;
       }
       return [...prev, itemWithActive];
@@ -60,32 +71,30 @@ export const AtSelectionProvider: React.FC<AtSelectionProviderProps> = ({ childr
   }, []);
 
   const removeItem = useCallback((itemId: string) => {
-    setSelectedItems(prev => prev.filter(item => item.id !== itemId));
-    setStagingItems(prev => prev.filter(item => item.id !== itemId));
+    setSelectedItems((prev) => prev.filter((item) => item.uid !== itemId));
+    setStagingItems((prev) => prev.filter((item) => item.uid !== itemId));
   }, []);
 
   const toggleItem = useCallback((itemId: string) => {
-    setSelectedItems(prev => 
-      prev.map(item => {
-        if (item.id === itemId) {
+    setSelectedItems((prev) =>
+      prev.map((item) => {
+        if (item.uid === itemId) {
           const updatedItem = { ...item, active: !item.active };
-          
+
           // Update staging based on active state
-          setStagingItems(stagingPrev => {
+          setStagingItems((stagingPrev) => {
             if (updatedItem.active) {
               // Add to staging if activated and not already there
-              if (!stagingPrev.some(stagingItem => stagingItem.id === itemId)) {
+              if (!stagingPrev.some((stagingItem) => stagingItem.uid === itemId)) {
                 return [...stagingPrev, updatedItem];
               }
-              return stagingPrev.map(stagingItem => 
-                stagingItem.id === itemId ? updatedItem : stagingItem
-              );
+              return stagingPrev.map((stagingItem) => (stagingItem.uid === itemId ? updatedItem : stagingItem));
             } else {
               // Remove from staging if deactivated
-              return stagingPrev.filter(stagingItem => stagingItem.id !== itemId);
+              return stagingPrev.filter((stagingItem) => stagingItem.uid !== itemId);
             }
           });
-          
+
           return updatedItem;
         }
         return item;
@@ -98,18 +107,27 @@ export const AtSelectionProvider: React.FC<AtSelectionProviderProps> = ({ childr
     setStagingItems([]);
   }, []);
 
-  const isSelected = useCallback((itemId: string) => {
-    return selectedItems.some(item => item.id === itemId);
-  }, [selectedItems]);
+  const isSelected = useCallback(
+    (itemId: string) => {
+      return selectedItems.some((item) => item.uid === itemId);
+    },
+    [selectedItems]
+  );
 
-  const isActive = useCallback((itemId: string) => {
-    const item = selectedItems.find(item => item.id === itemId);
-    return item?.active ?? false;
-  }, [selectedItems]);
+  const isActive = useCallback(
+    (itemId: string) => {
+      const item = selectedItems.find((item) => item.uid === itemId);
+      return item?.active ?? false;
+    },
+    [selectedItems]
+  );
 
-  const isStagedForContext = useCallback((itemId: string) => {
-    return stagingItems.some(item => item.id === itemId);
-  }, [stagingItems]);
+  const isStagedForContext = useCallback(
+    (itemId: string) => {
+      return stagingItems.some((item) => item.uid === itemId);
+    },
+    [stagingItems]
+  );
 
   const value: AtSelectionContextType = {
     selectedItems,

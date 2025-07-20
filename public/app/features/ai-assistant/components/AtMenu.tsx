@@ -1,55 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { t } from '@grafana/i18n';
 import { Dropdown, Menu } from '@grafana/ui';
 
 import { useAtSelection, AtSelectionItem } from '../contexts/AtSelectionContext';
+import { getBackendSrv } from '@grafana/runtime';
 
 interface AtMenuProps {
   children: React.ReactElement;
 }
 
-// Mock data for Database items
-const mockDatabases: AtSelectionItem[] = [
-  {
-    id: 'database-1',
-    type: 'database',
-    title: 'PostgreSQL Production',
-    subtitle: 'Main production database',
-    icon: 'database',
-  },
-  {
-    id: 'database-2',
-    type: 'database',
-    title: 'MySQL Analytics',
-    subtitle: 'Analytics and reporting database',
-    icon: 'database',
-  },
-  {
-    id: 'database-3',
-    type: 'database',
-    title: 'MongoDB Logs',
-    subtitle: 'Application logs storage',
-    icon: 'database',
-  },
-  {
-    id: 'database-4',
-    type: 'database',
-    title: 'Redis Cache',
-    subtitle: 'In-memory caching layer',
-    icon: 'database',
-  },
-  {
-    id: 'database-5',
-    type: 'database',
-    title: 'InfluxDB Metrics',
-    subtitle: 'Time-series metrics database',
-    icon: 'database',
-  },
-];
-
 export const AtMenu: React.FC<AtMenuProps> = ({ children }) => {
   const { addItem, isSelected } = useAtSelection();
+  const [databases, setDatabases] = useState<AtSelectionItem[]>([]);
+
+  useEffect(() => {
+    const getDatabases = async () => {
+      const databases = await getBackendSrv().get('/api/datasources');
+      setDatabases(databases);
+    };
+    getDatabases();
+  }, []);
 
   const handleItemSelect = (database: AtSelectionItem) => {
     addItem(database);
@@ -57,13 +28,13 @@ export const AtMenu: React.FC<AtMenuProps> = ({ children }) => {
 
   const databaseMenu = (
     <>
-      {mockDatabases.map((database) => (
+      {databases.map((database) => (
         <Menu.Item
           key={database.id}
-          label={database.title}
-          icon={database.icon as any}
+          label={database.name}
+          icon="database"
           onClick={() => handleItemSelect(database)}
-          active={isSelected(database.id)}
+          active={isSelected(database.uid.toString())}
         />
       ))}
     </>

@@ -16,42 +16,57 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
   const styles = useStyles2(getStyles);
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  // Get tool status styling based on status.type
+  // Get tool status styling based on multiple parameters
   const getStatusConfig = () => {
-    switch (status?.type) {
-      case 'running':
-        return {
-          icon: 'spinner',
-          iconColor: 'blue',
-          bgColor: styles.runningBg,
-          textColor: styles.runningText,
-          statusText: t('ai-assistant.tool.status.running', '執行中...'),
-        };
-      case 'complete':
-        return {
-          icon: 'check',
-          iconColor: 'green',
-          bgColor: styles.completeBg,
-          textColor: styles.completeText,
-          statusText: t('ai-assistant.tool.status.complete', '已完成'),
-        };
-      case 'incomplete':
-        return {
-          icon: 'exclamation-triangle',
-          iconColor: 'orange',
-          bgColor: styles.incompleteBg,
-          textColor: styles.incompleteText,
-          statusText: t('ai-assistant.tool.status.incomplete', '處理中...'),
-        };
-      default:
-        return {
-          icon: 'cog',
-          iconColor: 'grey',
-          bgColor: styles.defaultBg,
-          textColor: styles.defaultText,
-          statusText: t('ai-assistant.tool.status.pending', '準備中'),
-        };
-    }
+    const statusConfigs = {
+      running: {
+        icon: 'spinner',
+        statusText: t('ai-assistant.tool.status.running', '執行中...'),
+      },
+      complete: {
+        icon: 'check',
+        statusText: t('ai-assistant.tool.status.complete', '已完成'),
+      },
+      incomplete: {
+        icon: 'exclamation-triangle',
+        statusText: t('ai-assistant.tool.status.incomplete', '處理中...'),
+      },
+      thinkRunning: {
+        icon: 'spinner',
+        statusText: t('ai-assistant.tool.status.think', '思考中...'),
+      },
+      thinkComplete: {
+        icon: 'gf-ml',
+        statusText: t('ai-assistant.tool.status.think', '思考完成'),
+      },
+      default: {
+        icon: 'cog',
+        statusText: t('ai-assistant.tool.status.pending', '準備中'),
+      },
+    };
+
+    const determineStatus = () => {
+      if (status?.type === 'running') {
+        if (toolName === 'think') return 'thinkRunning';
+
+        return 'running';
+      }
+
+      if (status?.type === 'complete') {
+        if (toolName === 'think') return 'thinkComplete';
+
+        return 'complete';
+      }
+
+      if (status?.type === 'incomplete') {
+        return 'incomplete';
+      }
+
+      return 'default';
+    };
+
+    const currentStatus = determineStatus();
+    return statusConfigs[currentStatus] || statusConfigs.default;
   };
 
   const statusConfig = getStatusConfig();
@@ -89,15 +104,17 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
       {!isCollapsed && (
         <div className={styles.detailsContainer}>
           {/* Input parameters section */}
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionIndicator} />
-              <Text variant="bodySmall">{t('ai-assistant.tool.input-params', '輸入參數')}</Text>
+          {toolName !== 'think' && (
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionIndicator} />
+                <Text variant="bodySmall">{t('ai-assistant.tool.input-params', '輸入參數')}</Text>
+              </div>
+              <div className={styles.codeBlock}>
+                <pre className={styles.codeContent}>{argsText}</pre>
+              </div>
             </div>
-            <div className={styles.codeBlock}>
-              <pre className={styles.codeContent}>{argsText}</pre>
-            </div>
-          </div>
+          )}
 
           {/* Output results section */}
           {result !== undefined && (

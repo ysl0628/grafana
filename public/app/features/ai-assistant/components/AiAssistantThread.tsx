@@ -14,6 +14,9 @@ import { t } from '@grafana/i18n';
 import { useStyles2, Icon, Button, Stack, Text, Tooltip, TextArea, LoadingBar } from '@grafana/ui';
 
 import { AiAssistantMessage } from './AiAssistantMessage';
+import { AtSelectionProvider } from '../contexts/AtSelectionContext';
+import { AtMenu } from './AtMenu';
+import { SelectedItems } from './SelectedItems';
 
 /**
  * AI Assistant Thread Component
@@ -25,24 +28,26 @@ export const AiAssistantThread: React.FC = () => {
   const styles = useStyles2(getStyles);
 
   return (
-    <div className={styles.container}>
-      <ThreadPrimitive.Root className={styles.threadRoot}>
-        <ThreadPrimitive.Viewport className={styles.viewport}>
-          <ThreadWelcome />
-          <ThreadPrimitive.Messages
-            components={{
-              UserMessage: AiAssistantUserMessage,
-              AssistantMessage: AiAssistantMessage,
-              EditComposer: AiAssistantEditComposer,
-            }}
-          />
-        </ThreadPrimitive.Viewport>
-        <div className={styles.composerContainer}>
-          <ThreadScrollToBottom />
-          <AiAssistantComposer />
-        </div>
-      </ThreadPrimitive.Root>
-    </div>
+    <AtSelectionProvider>
+      <div className={styles.container}>
+        <ThreadPrimitive.Root className={styles.threadRoot}>
+          <ThreadPrimitive.Viewport className={styles.viewport}>
+            <ThreadWelcome />
+            <ThreadPrimitive.Messages
+              components={{
+                UserMessage: AiAssistantUserMessage,
+                AssistantMessage: AiAssistantMessage,
+                EditComposer: AiAssistantEditComposer,
+              }}
+            />
+          </ThreadPrimitive.Viewport>
+          <div className={styles.composerContainer}>
+            <ThreadScrollToBottom />
+            <AiAssistantComposer />
+          </div>
+        </ThreadPrimitive.Root>
+      </div>
+    </AtSelectionProvider>
   );
 };
 
@@ -226,15 +231,17 @@ const AiAssistantComposer: React.FC = () => {
   return (
     <ComposerPrimitive.Root className={styles.composer}>
       {isRunning && <LoadingBar width={100} />}
-      {/* Header 區域 */}
       <div className={styles.composerHeader}>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon="at"
-          aria-label={t('ai-assistant.composer.at-button', 'At symbol')}
-          className={styles.atButton}
-        />
+        <AtMenu>
+          <Button
+            variant="secondary"
+            size="xs"
+            icon="at"
+            aria-label={t('ai-assistant.composer.at-button', 'At symbol')}
+            className={styles.atButton}
+          />
+        </AtMenu>
+        <SelectedItems />
       </div>
 
       {/* 輸入區域 */}
@@ -492,8 +499,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
     display: 'flex',
     alignItems: 'center',
     padding: 0,
-    height: theme.spacing(5),
+    minHeight: theme.spacing(4),
     flexShrink: 0,
+    width: '100%',
+    overflow: 'hidden',
   }),
   composerInput: css({
     width: '100%',
@@ -533,9 +542,14 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   atButton: css({
+    height: theme.spacing(3),
+    width: theme.spacing(3),
     backgroundColor: 'transparent',
+    padding: '0 10px',
+    justifyContent: 'center',
     border: `1px solid ${theme.colors.border.weak}`,
     borderRadius: '5px',
+    flexShrink: 0,
     '&:hover': {
       backgroundColor: `${theme.colors.action.hover}`,
     },

@@ -60,6 +60,13 @@ const useAiAssistantRuntime = () => {
 
         // Check if this was a new thread with a human message
         const shouldAddToThreadList = isNewThreadRef.current && messages.length > 0 && messages[0].type === 'human';
+        console.log('Thread management check:', { 
+          isNewThread: isNewThreadRef.current, 
+          hasMessages: messages.length > 0, 
+          firstMessageType: messages[0]?.type,
+          shouldAdd: shouldAddToThreadList,
+          threadId 
+        });
 
         yield* await generator;
 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, Icon, Text, Tooltip } from '@grafana/ui';
 
-import { useAtSelection } from '../contexts/AtSelectionContext';
+import { AtSelectionItem, useAtSelection } from '../contexts/AtSelectionContext';
 
 export const SelectedItems: React.FC = () => {
   const styles = useStyles2(getStyles);
@@ -30,11 +30,11 @@ export const SelectedItems: React.FC = () => {
     }
   };
 
-  const getIconName = (itemId: string, isItemActive: boolean) => {
-    if (hoveredItemId === itemId) {
+  const getIconName = (item: AtSelectionItem, isItemActive: boolean) => {
+    if (hoveredItemId === item.uid) {
       return isItemActive ? 'times' : 'plus-circle';
     }
-    return 'database';
+    return item.type === 'dashboard' ? 'dashboard' : 'database';
   };
 
   return (
@@ -44,14 +44,14 @@ export const SelectedItems: React.FC = () => {
         const isItemActive = isActive(item.uid);
         return (
           <div
-            key={item.id}
+            key={item.uid}
             className={`${styles.item} ${!isItemActive ? styles.itemDisabled : ''}`}
             onClick={() => handleItemToggle(item.uid)}
             onMouseEnter={() => setHoveredItemId(item.uid)}
             onMouseLeave={() => setHoveredItemId(null)}
           >
             <Icon
-              name={getIconName(item.uid, isItemActive) as any}
+              name={getIconName(item, isItemActive) as any}
               size="sm"
               className={`${styles.itemIcon} ${!isItemActive ? styles.iconDisabled : ''}`}
               onClick={(e) => handleIconClick(e, item.uid, isItemActive)}

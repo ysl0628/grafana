@@ -1,29 +1,58 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
+export enum AtSelectionItemType {
+  Dashboard = 'dashboard',
+  Datasource = 'datasource',
+}
+
+export interface DashboardItem {
+  id: number;
+  isDeleted: boolean;
+  isStarred: boolean;
+  orgId: number;
+  slug: string;
+  sortMeta: number;
+  tags: string[];
+  title: string;
+  type: string;
+  uid: string;
+  uri: string;
+  url: string;
+}
 export interface AtSelectionItem {
   id: string | number;
-  type: 'database' | 'table' | 'datasource' | 'loki';
+  type: 'database' | 'table' | 'datasource' | 'loki' | 'dashboard';
   icon?: string;
   active?: boolean;
-  access: string;
-  basicAuth: boolean;
-  database: string;
-  isDefault: boolean;
-  jsonData: {};
+  // Common fields
   name: string;
-  orgId: number;
-  readOnly: boolean;
-  typeLogoUrl: string;
-  typeName: string;
   uid: string;
-  url: string;
-  user: string;
+  orgId?: number;
+  // Datasource fields (optional)
+  access?: string;
+  basicAuth?: boolean;
+  database?: string;
+  isDefault?: boolean;
+  jsonData?: {};
+  readOnly?: boolean;
+  typeLogoUrl?: string;
+  typeName?: string;
+  url?: string;
+  user?: string;
+  // Dashboard fields (optional)
+  uri?: string;
+  isDeleted?: boolean;
+  isStarred?: boolean;
+  tags?: string[];
+  title?: string;
+  slug?: string;
+  sortMeta?: number;
 }
 
 interface AtSelectionContextType {
   selectedItems: AtSelectionItem[];
   stagingItems: AtSelectionItem[]; // New staging state
-  addItem: (item: AtSelectionItem) => void;
+  addItem: (item: AtSelectionItem | DashboardItem) => void;
   removeItem: (itemId: string) => void;
   clearItems: () => void;
   toggleItem: (itemId: string) => void; // New toggle function
@@ -50,12 +79,21 @@ export const AtSelectionProvider: React.FC<AtSelectionProviderProps> = ({ childr
   const [selectedItems, setSelectedItems] = useState<AtSelectionItem[]>([]);
   const [stagingItems, setStagingItems] = useState<AtSelectionItem[]>([]);
 
-  const addItem = useCallback((item: AtSelectionItem) => {
-    const itemWithActive = { ...item, active: true };
+  const addItem = useCallback((item: AtSelectionItem | DashboardItem) => {
+    // Convert DashboardItem to AtSelectionItem if needed
+    const normalizedItem: AtSelectionItem = 'title' in item && !('name' in item) ? {
+      ...item,
+      name: item.title || 'Unnamed Dashboard',
+      type: 'dashboard' as const,
+      id: item.id,
+      uid: item.uid,
+    } : item as AtSelectionItem;
+    
+    const itemWithActive = { ...normalizedItem, active: true };
 
     setSelectedItems((prev) => {
       // Check if item already exists
-      if (prev.some((existingItem) => existingItem.uid === item.uid)) {
+      if (prev.some((existingItem) => existingItem.uid === itemWithActive.uid)) {
         return prev;
       }
       return [...prev, itemWithActive];
@@ -63,7 +101,7 @@ export const AtSelectionProvider: React.FC<AtSelectionProviderProps> = ({ childr
 
     // Also add to staging for context usage
     setStagingItems((prev) => {
-      if (prev.some((existingItem) => existingItem.uid === item.uid)) {
+      if (prev.some((existingItem) => existingItem.uid === itemWithActive.uid)) {
         return prev;
       }
       return [...prev, itemWithActive];

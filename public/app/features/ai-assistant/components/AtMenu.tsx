@@ -42,7 +42,7 @@ export const AtMenu: React.FC<AtMenuProps> = ({ children }) => {
 
   const mainMenu = (
     <Menu>
-      <Menu.Item label={t('ai-assistant.at-menu.database', 'Database')} icon="database" childItems={[databaseMenu]} />
+      <Menu.Item label={t('ai-assistant.at-menu.database', 'Datasource')} icon="database" childItems={[databaseMenu]} />
     </Menu>
   );
 

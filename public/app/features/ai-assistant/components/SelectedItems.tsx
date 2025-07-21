@@ -1,15 +1,15 @@
 import { css } from '@emotion/css';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { t } from '@grafana/i18n';
-import { useStyles2, Icon, Button, Text, Tooltip } from '@grafana/ui';
+import { useStyles2, Icon, Text, Tooltip } from '@grafana/ui';
 
 import { useAtSelection } from '../contexts/AtSelectionContext';
 
 export const SelectedItems: React.FC = () => {
   const styles = useStyles2(getStyles);
   const { selectedItems, removeItem, toggleItem, isActive } = useAtSelection();
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   if (selectedItems.length === 0) {
     return null;
@@ -17,6 +17,24 @@ export const SelectedItems: React.FC = () => {
 
   const handleItemToggle = (itemId: string) => {
     toggleItem(itemId);
+  };
+
+  const handleIconClick = (e: React.MouseEvent, itemId: string, isItemActive: boolean) => {
+    e.stopPropagation();
+    if (isItemActive) {
+      // Active item: remove on icon click
+      removeItem(itemId);
+    } else {
+      // Inactive item: toggle to active on icon click
+      toggleItem(itemId);
+    }
+  };
+
+  const getIconName = (itemId: string, isItemActive: boolean) => {
+    if (hoveredItemId === itemId) {
+      return isItemActive ? 'times' : 'plus-circle';
+    }
+    return 'database';
   };
 
   return (
@@ -29,33 +47,20 @@ export const SelectedItems: React.FC = () => {
             key={item.id}
             className={`${styles.item} ${!isItemActive ? styles.itemDisabled : ''}`}
             onClick={() => handleItemToggle(item.uid)}
+            onMouseEnter={() => setHoveredItemId(item.uid)}
+            onMouseLeave={() => setHoveredItemId(null)}
           >
-            <div className={styles.itemContent}>
-              <Icon
-                name="database"
-                size="sm"
-                className={`${styles.itemIcon} ${!isItemActive ? styles.iconDisabled : ''}`}
-              />
-              <Tooltip content={item.name}>
-                <Text variant="bodySmall" color={!isItemActive ? 'secondary' : 'disabled'}>
-                  {item.name}
-                </Text>
-              </Tooltip>
-            </div>
-            <Button
-              variant="secondary"
+            <Icon
+              name={getIconName(item.uid, isItemActive) as any}
               size="sm"
-              fill="text"
-              icon="times"
-              tooltip={t('ai-assistant.selected-items.remove', 'Remove item')}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering toggle
-                removeItem(item.uid);
-              }}
-              aria-label={t('ai-assistant.selected-items.remove-aria-label', 'Remove {{title}}', {
-                title: item.name,
-              })}
+              className={`${styles.itemIcon} ${!isItemActive ? styles.iconDisabled : ''}`}
+              onClick={(e) => handleIconClick(e, item.uid, isItemActive)}
             />
+            <Tooltip content={item.name}>
+              <Text variant="bodySmall" color={!isItemActive ? 'secondary' : 'disabled'}>
+                {item.name}
+              </Text>
+            </Tooltip>
           </div>
         );
       })}
@@ -64,25 +69,11 @@ export const SelectedItems: React.FC = () => {
 };
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  // container: css({
-  //   display: 'flex',
-  //   alignItems: 'flex-start',
-  //   marginLeft: theme.spacing(0.5),
-  //   flex: 1,
-  //   minWidth: 0,
-  // }),
-  // itemsList: css({
-  //   display: 'flex',
-  //   alignItems: 'flex-start',
-  //   gap: theme.spacing(0.5),
-  //   flexWrap: 'wrap',
-  //   width: '100%',
-  // }),
   item: css({
     display: 'flex',
     alignItems: 'center',
     gap: theme.spacing(0.5),
-    padding: theme.spacing(0.25, 0.5),
+    padding: theme.spacing(0.25, 0.75, 0.25, 0.25),
     backgroundColor: theme.colors.background.secondary,
     border: `1px solid ${theme.colors.border.weak}`,
     borderRadius: theme.shape.radius.default,
@@ -92,29 +83,27 @@ const getStyles = (theme: GrafanaTheme2) => ({
       transition: 'all 0.2s ease',
     },
     '&:hover': {
-      backgroundColor: theme.colors.background.canvas,
-      borderColor: theme.colors.border.medium,
+      backgroundColor: theme.colors.background.secondary,
+      borderColor: theme.colors.border.weak,
     },
   }),
   itemDisabled: css({
     backgroundColor: theme.colors.background.primary,
-    border: 'none',
+    border: `1px solid ${theme.colors.background.primary}`,
     opacity: 0.6,
     '&:hover': {
       backgroundColor: theme.colors.background.primary,
     },
   }),
-  itemContent: css({
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-    flex: 1,
-    minWidth: 0,
-    overflow: 'hidden',
-  }),
   itemIcon: css({
     color: theme.colors.text.secondary,
     flexShrink: 0,
+    cursor: 'pointer',
+    padding: theme.spacing(0.25),
+    borderRadius: theme.shape.radius.default,
+    [theme.transitions.handleMotion('no-preference')]: {
+      transition: 'all 0.2s ease',
+    },
   }),
   iconDisabled: css({
     color: theme.colors.text.disabled,

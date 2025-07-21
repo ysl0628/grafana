@@ -43,7 +43,6 @@ const useAiAssistantRuntime = () => {
   const streamMessages = useCallback(
     async function* (messages: LangChainMessage[]) {
       try {
-        
         // Ensure we have a thread ID
         if (!threadIdRef.current) {
           const response = await createThread();
@@ -56,10 +55,10 @@ const useAiAssistantRuntime = () => {
         // Send messages with context and abort signal using LangGraph SDK
         const generator = sendMessage({
           threadId,
-          messages: messages, // Messages are already LangChain format
+          messages,
         });
-        
-        // If this was a new thread and we have a human message, we'll need to track it for the thread list
+
+        // Check if this was a new thread with a human message
         const shouldAddToThreadList = isNewThreadRef.current && messages.length > 0 && messages[0].type === 'human';
 
         yield* await generator;
@@ -78,8 +77,7 @@ const useAiAssistantRuntime = () => {
               }
             }
           }
-          
-          // Add the new thread to the list
+
           actions.addThread({
             threadId,
             title,
@@ -87,7 +85,7 @@ const useAiAssistantRuntime = () => {
             lastActivity: new Date(),
             context: {},
           });
-          
+
           isNewThreadRef.current = false; // Reset the flag
         }
 

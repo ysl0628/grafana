@@ -213,7 +213,7 @@ const AssistantActionBar: React.FC = () => {
   const styles = useStyles2(getStyles);
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const message = useMessage();
-  console.log(message);
+  // console.log(message);
 
   return (
     <ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className={styles.actionBar}>

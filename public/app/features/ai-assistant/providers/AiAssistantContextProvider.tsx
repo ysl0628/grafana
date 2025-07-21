@@ -244,7 +244,6 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
 
   const addThread = (thread: ThreadState) => {
     dispatch({ type: 'ADD_THREAD', payload: thread });
-    // Automatically switch to the new thread
     dispatch({ type: 'SET_CURRENT_THREAD', payload: thread.threadId });
   };
 

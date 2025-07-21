@@ -27,23 +27,21 @@ import type { FeedbackAdapter } from '@assistant-ui/react';
 import type { SpeechSynthesisAdapter } from '@assistant-ui/react';
 import { appendLangChainChunk } from './appendLangChainChunk';
 import useAiAssistant from 'app/features/ai-assistant/hooks/useAiAssistant';
+import { useAiAssistantContext } from 'app/features/ai-assistant/providers/AiAssistantContextProvider';
 
 const getPendingToolCalls = (messages: LangChainMessage[]) => {
   const pendingToolCalls = new Map<string, LangChainToolCall>();
   for (const message of messages) {
     if (message.type === 'ai') {
       for (const toolCall of message.tool_calls ?? []) {
-        console.log('Found tool call in AI message:', toolCall.name, toolCall.id);
         pendingToolCalls.set(toolCall.id, toolCall);
       }
     }
     if (message.type === 'tool') {
-      console.log('Found tool response:', message.name, message.tool_call_id);
       pendingToolCalls.delete(message.tool_call_id);
     }
   }
 
-  console.log('Pending tool calls:', [...pendingToolCalls.values()]);
   return [...pendingToolCalls.values()];
 };
 
@@ -167,12 +165,15 @@ export const useLangGraphRuntime = ({
   const [isRunning, setIsRunning] = useState(false);
   const processedToolCallsRef = useRef(new Set<string>());
   const { threads, archivedThreads, onRename } = useAiAssistant();
+  const { actions } = useAiAssistantContext();
+  const currentThreadIdRef = useRef<string | null>(null);
 
   const handleSendMessage = useCallback(
     async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
       try {
         setIsRunning(true);
         await sendMessage(messages, config);
+        
       } catch (error) {
         console.error('Error streaming messages:', error);
         
@@ -296,8 +297,11 @@ export const useLangGraphRuntime = ({
     adapters,
     extras,
     onNew: (msg) => {
+      
       // 清理已處理的 tool calls，開始新的對話輪次
       processedToolCallsRef.current.clear();
+
+      const messageContent = getMessageContent(msg);
 
       const cancellations =
         autoCancelPendingToolCalls !== false
@@ -313,13 +317,15 @@ export const useLangGraphRuntime = ({
             )
           : [];
 
+      const finalMessage = {
+        type: 'human',
+        content: messageContent,
+      } as LangChainMessage;
+
       return handleSendMessage(
         [
           ...cancellations,
-          {
-            type: 'human',
-            content: getMessageContent(msg),
-          },
+          finalMessage,
         ],
         {
           runConfig: msg.runConfig,
@@ -327,10 +333,8 @@ export const useLangGraphRuntime = ({
       );
     },
     onAddToolResult: async ({ toolCallId, toolName, result, isError, artifact }) => {
-      console.log('onAddToolResult called:', { toolCallId, toolName, result, isError });
 
       if (processedToolCallsRef.current.has(toolCallId)) {
-        console.log(`Tool call ${toolCallId} already processed, skipping`);
         return;
       }
 
@@ -353,9 +357,9 @@ export const useLangGraphRuntime = ({
           {}
         );
       } catch (error) {
-        console.error('Error sending tool result:', error, { toolCallId, toolName });
         // Remove from processed set so it can be retried
         processedToolCallsRef.current.delete(toolCallId);
+        throw error;
       }
     },
     onCancel: unstable_allowCancellation

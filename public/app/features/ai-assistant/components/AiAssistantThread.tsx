@@ -249,6 +249,7 @@ const AiAssistantComposer: React.FC = () => {
         placeholder={t('ai-assistant.composer.placeholder', 'Ask questions, go places, make changes, anything.')}
         className={styles.composerInput}
         autoFocus
+        rows={1}
       />
 
       <ComposerAction />

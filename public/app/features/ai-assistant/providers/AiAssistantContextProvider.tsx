@@ -242,6 +242,12 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
     dispatch({ type: 'UNARCHIVE_THREAD', payload: threadId });
   };
 
+  const addThread = (thread: ThreadState) => {
+    dispatch({ type: 'ADD_THREAD', payload: thread });
+    // Automatically switch to the new thread
+    dispatch({ type: 'SET_CURRENT_THREAD', payload: thread.threadId });
+  };
+
   // Helper functions to get filtered lists
   const getActiveThreads = () => {
     return Array.from(state.threads.values()).filter((t) => !state.archivedThreadIds.has(t.threadId));
@@ -261,6 +267,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
       updateThread: updateThreadById,
       archiveThread,
       unarchiveThread,
+      addThread,
       clearError,
     },
     tools,

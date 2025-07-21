@@ -443,7 +443,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
   messageFooter: css({
     display: 'flex',
     justifyContent: 'flex-end',
-    marginBottom: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
+    height: '20px',
     width: '100%',
   }),
   messageContent: css({

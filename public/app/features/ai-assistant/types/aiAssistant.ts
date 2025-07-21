@@ -89,6 +89,7 @@ export interface AiAssistantContextValue {
     updateThread: (threadId: string, updates: Partial<ThreadState>) => void;
     archiveThread: (threadId: string) => Promise<void>;
     unarchiveThread: (threadId: string) => Promise<void>;
+    addThread: (thread: ThreadState) => void;
     clearError: () => void;
   };
   tools: AiAssistantTools;

@@ -87,6 +87,27 @@ const convertToolMessage = (toolMessage: LangChainMessage) => {
 };
 
 /**
+ * Extract thread title from the first message
+ */
+const getThreadTitle = (message: LangChainMessage | undefined): string | undefined => {
+  if (!message) return undefined;
+
+  if (typeof message.content === 'string') {
+    return message.content.slice(0, 50); // First 50 chars as title
+  }
+
+  if (Array.isArray(message.content)) {
+    for (const part of message.content) {
+      if (part.type === 'text' && part.text) {
+        return part.text.slice(0, 50); // First 50 chars as title
+      }
+    }
+  }
+
+  return undefined;
+};
+
+/**
  * Create a new conversation thread using LangGraph SDK
  */
 export const createThread = async (): Promise<CreateThreadResponse> => {
@@ -129,14 +150,16 @@ export const sendMessage = async (params: {
   context?: GrafanaContext;
   tools?: AiAssistantTools;
 }) => {
-  const convertedMessages = convertMessagesToLangChain(params.messages as any);
+  // Messages are already in LangChain format from the runtime, no need to convert
+  const messages = params.messages;
   const convertedToolMessage = convertToolMessage(params.messages[0]);
 
-  return client.runs.stream(params.threadId, config.aiAssistantId || 'agent', {
+
+  const payload = {
     ...(!convertedToolMessage
       ? {
           input: {
-            messages: convertedMessages,
+            messages: messages,
             grafanaContext: params.context,
             tools: params.tools
               ? Object.keys(params.tools).map((name) => ({
@@ -156,12 +179,15 @@ export const sendMessage = async (params: {
       : {}),
     command: convertedToolMessage,
     metadata: {
-      threadTitle: convertedMessages[0]?.content?.[0]?.text || 'New Chat',
+      threadTitle: getThreadTitle(messages[0]) || 'New Chat',
       grafanaContext: params.context,
     },
     streamMode: ['messages-tuple', 'messages', 'updates'],
     streamResumable: true,
-  });
+  };
+
+
+  return client.runs.stream(params.threadId, config.aiAssistantId || 'agent', payload);
 };
 
 /**

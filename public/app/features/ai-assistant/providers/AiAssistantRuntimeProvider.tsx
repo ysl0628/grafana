@@ -8,6 +8,7 @@ import { config, locationService } from '@grafana/runtime';
 import { createThread, sendMessage, getThreadState } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import { useGrafanaContext } from '../utils/grafanaContext';
+import { useAiAssistantContext } from './AiAssistantContextProvider';
 
 interface AiAssistantRuntimeProviderProps {
   children: ReactNode;
@@ -34,16 +35,20 @@ export const AiAssistantRuntimeProvider: React.FC<AiAssistantRuntimeProviderProp
 const useAiAssistantRuntime = () => {
   const threadIdRef = useRef<string | undefined>(undefined);
   const tools = getAiAssistantTools();
+  const isNewThreadRef = useRef(false); // Track if this is a new thread
+  const { actions } = useAiAssistantContext();
   // const getGrafanaContext = useGrafanaContext();
 
   // Enhanced message streaming with Grafana context
   const streamMessages = useCallback(
     async function* (messages: LangChainMessage[]) {
       try {
+        
         // Ensure we have a thread ID
         if (!threadIdRef.current) {
           const response = await createThread();
           threadIdRef.current = response.thread_id;
+          isNewThreadRef.current = true; // Mark this as a new thread
         }
 
         const threadId = threadIdRef.current;
@@ -51,10 +56,40 @@ const useAiAssistantRuntime = () => {
         // Send messages with context and abort signal using LangGraph SDK
         const generator = sendMessage({
           threadId,
-          messages: messages as unknown as LangChainMessage[],
+          messages: messages, // Messages are already LangChain format
         });
+        
+        // If this was a new thread and we have a human message, we'll need to track it for the thread list
+        const shouldAddToThreadList = isNewThreadRef.current && messages.length > 0 && messages[0].type === 'human';
 
         yield* await generator;
+
+        // If this was a new thread with a human message, add it to the thread list
+        if (shouldAddToThreadList) {
+          let title = 'New Chat';
+          const firstMessage = messages[0];
+          if (typeof firstMessage.content === 'string') {
+            title = firstMessage.content.slice(0, 50);
+          } else if (Array.isArray(firstMessage.content)) {
+            for (const part of firstMessage.content) {
+              if (part.type === 'text' && part.text) {
+                title = part.text.slice(0, 50);
+                break;
+              }
+            }
+          }
+          
+          // Add the new thread to the list
+          actions.addThread({
+            threadId,
+            title,
+            messages: [],
+            lastActivity: new Date(),
+            context: {},
+          });
+          
+          isNewThreadRef.current = false; // Reset the flag
+        }
 
         // Stream responses
         // for await (const chunk of stream) {
@@ -116,6 +151,7 @@ const useAiAssistantRuntime = () => {
   const handleSwitchToNewThread = async () => {
     const { thread_id } = await createThread();
     threadIdRef.current = thread_id;
+    isNewThreadRef.current = true; // Mark as new thread
   };
 
   // Error handler to display errors in thread

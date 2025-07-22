@@ -1,4 +1,4 @@
-import { Client, type ThreadState } from '@langchain/langgraph-sdk';
+import { Client, Metadata, type ThreadState } from '@langchain/langgraph-sdk';
 import { config } from '@grafana/runtime';
 import { AiAssistantMessage, GrafanaContext, AiAssistantTools } from '../types/aiAssistant';
 import { LangChainMessage } from '../providers/runtimes/langgraph/types';
@@ -110,8 +110,8 @@ const getThreadTitle = (message: LangChainMessage | undefined): string | undefin
 /**
  * Create a new conversation thread using LangGraph SDK
  */
-export const createThread = async (): Promise<CreateThreadResponse> => {
-  return client.threads.create();
+export const createThread = async ({ metadata }: { metadata?: Metadata }): Promise<CreateThreadResponse> => {
+  return client.threads.create({ metadata });
 };
 
 /**
@@ -154,7 +154,6 @@ export const sendMessage = async (params: {
   const messages = params.messages;
   const convertedToolMessage = convertToolMessage(params.messages[0]);
 
-
   const payload = {
     ...(!convertedToolMessage
       ? {
@@ -185,7 +184,6 @@ export const sendMessage = async (params: {
     streamMode: ['messages-tuple', 'messages', 'updates'],
     streamResumable: true,
   };
-
 
   return client.runs.stream(params.threadId, config.aiAssistantId || 'agent', payload);
 };

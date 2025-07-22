@@ -1,6 +1,6 @@
 import { ComponentType } from 'react';
 
-import { TimeRange } from '@grafana/data';
+import { CurrentUserDTO, TimeRange } from '@grafana/data';
 
 export interface DataQuery {
   refId: string;
@@ -79,6 +79,9 @@ export interface ThreadState {
   context: GrafanaContext;
   archived?: boolean;
   title?: string;
+  metadata: {
+    user?: CurrentUserDTO;
+  };
 }
 
 export interface AiAssistantConfig {
@@ -155,7 +158,7 @@ export interface AiAssistantHookResult {
   isLoading: boolean;
   error: string | null;
   switchThread: (threadId: string) => void;
-  deleteThread: (threadId: string) => void;
+  onDelete: (threadId: string) => void;
   archiveThread: (threadId: string) => Promise<void>;
   unarchiveThread: (threadId: string) => Promise<void>;
   clearError: () => void;

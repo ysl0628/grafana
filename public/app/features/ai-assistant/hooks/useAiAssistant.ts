@@ -35,20 +35,14 @@ export const useAiAssistant = (): AiAssistantHookResult => {
   }, [state.threads, state.archivedThreadIds]);
 
   // Switch to thread
-  const switchThread = useCallback(
-    (threadId: string) => {
-      actions.switchThread(threadId);
-    },
-    [actions]
-  );
+  const switchThread = (threadId: string) => {
+    actions.switchThread(threadId);
+  };
 
   // Delete thread
-  const deleteThread = useCallback(
-    async (threadId: string) => {
-      await actions.deleteThread(threadId);
-    },
-    [actions]
-  );
+  const onDelete = async (threadId: string) => {
+    actions.deleteThread(threadId);
+  };
 
   // Archive thread
   const archiveThread = useCallback(
@@ -84,7 +78,7 @@ export const useAiAssistant = (): AiAssistantHookResult => {
     isLoading: state.isLoading,
     error: state.error,
     switchThread,
-    deleteThread,
+    onDelete,
     archiveThread,
     unarchiveThread,
     clearError,

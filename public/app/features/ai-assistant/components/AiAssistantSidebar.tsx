@@ -46,12 +46,12 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const thread = useThreadListItem();
 
-  const { error, clearError } = useAiAssistant();
+  const { error, clearError, threads } = useAiAssistant();
+  const isThreadListEmpty = threads.length === 0;
 
   const currentThread = useThread();
   const { isRunning } = currentThread;
-  // console.log('currentThread', currentThread);
-  const title = thread.title || t('ai-assistant.title', 'AI Assistant');
+  const title = thread.title || t('ai-assistant.title', 'New Chat');
 
   const handleClearAllThreads = () => {
     setShowClearConfirm(true);
@@ -112,8 +112,9 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
               tooltip={t('ai-assistant.history.tooltip', 'Thread History')}
               onClick={toggleHistory}
               aria-label={t('ai-assistant.history.aria-label', 'Thread History')}
+              disabled={isThreadListEmpty}
             >
-              <Text variant="body">{title || t('ai-assistant.title', 'AI Assistant')}</Text>
+              <Text variant="body">{title || t('ai-assistant.title', 'New Chat')}</Text>
             </ToolbarButton>
             <ThreadDropdown isOpen={isHistoryOpen} onClose={closeHistory} onClearAll={handleClearAllThreads} />
           </div>

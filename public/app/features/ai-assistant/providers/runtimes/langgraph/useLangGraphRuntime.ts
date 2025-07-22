@@ -27,7 +27,6 @@ import type { FeedbackAdapter } from '@assistant-ui/react';
 import type { SpeechSynthesisAdapter } from '@assistant-ui/react';
 import { appendLangChainChunk } from './appendLangChainChunk';
 import useAiAssistant from 'app/features/ai-assistant/hooks/useAiAssistant';
-import { useAiAssistantContext } from 'app/features/ai-assistant/providers/AiAssistantContextProvider';
 
 const getPendingToolCalls = (messages: LangChainMessage[]) => {
   const pendingToolCalls = new Map<string, LangChainToolCall>();
@@ -164,19 +163,16 @@ export const useLangGraphRuntime = ({
 
   const [isRunning, setIsRunning] = useState(false);
   const processedToolCallsRef = useRef(new Set<string>());
-  const { threads, archivedThreads, onRename } = useAiAssistant();
-  const { actions } = useAiAssistantContext();
-  const currentThreadIdRef = useRef<string | null>(null);
+  const { threads, archivedThreads, onRename, onDelete } = useAiAssistant();
 
   const handleSendMessage = useCallback(
     async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
       try {
         setIsRunning(true);
         await sendMessage(messages, config);
-        
       } catch (error) {
         console.error('Error streaming messages:', error);
-        
+
         // Handle specific error types to prevent crashes
         if (error instanceof Error) {
           if (error.message.includes('GraphRecursionError') || error.message.includes('Recursion limit')) {
@@ -237,7 +233,7 @@ export const useLangGraphRuntime = ({
   }));
 
   // Memoized onSwitchToNewThread callback
-  const memoizedOnSwitchToNewThread: (() => Promise<void>) | undefined = !onSwitchToNewThread
+  const switchToNewThread: (() => Promise<void>) | undefined = !onSwitchToNewThread
     ? undefined
     : async () => {
         await onSwitchToNewThread();
@@ -252,9 +248,10 @@ export const useLangGraphRuntime = ({
     threads: mappedThreads,
     threadId,
     archivedThreads: mappedArchivedThreads,
-    onSwitchToNewThread: memoizedOnSwitchToNewThread,
+    onSwitchToNewThread: switchToNewThread,
     onSwitchToThread: switchToThread,
     onRename,
+    onDelete,
   };
 
   const loadingRef = useRef(false);
@@ -297,7 +294,6 @@ export const useLangGraphRuntime = ({
     adapters,
     extras,
     onNew: (msg) => {
-      
       // 清理已處理的 tool calls，開始新的對話輪次
       processedToolCallsRef.current.clear();
 
@@ -322,18 +318,11 @@ export const useLangGraphRuntime = ({
         content: messageContent,
       } as LangChainMessage;
 
-      return handleSendMessage(
-        [
-          ...cancellations,
-          finalMessage,
-        ],
-        {
-          runConfig: msg.runConfig,
-        }
-      );
+      return handleSendMessage([...cancellations, finalMessage], {
+        runConfig: msg.runConfig,
+      });
     },
     onAddToolResult: async ({ toolCallId, toolName, result, isError, artifact }) => {
-
       if (processedToolCallsRef.current.has(toolCallId)) {
         return;
       }

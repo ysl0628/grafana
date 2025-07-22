@@ -45,7 +45,7 @@ const useAiAssistantRuntime = () => {
       try {
         // Ensure we have a thread ID
         if (!threadIdRef.current) {
-          const response = await createThread();
+          const response = await createThread({ metadata: { user: config.bootData.user } });
           threadIdRef.current = response.thread_id;
           isNewThreadRef.current = true; // Mark this as a new thread
         }
@@ -84,6 +84,9 @@ const useAiAssistantRuntime = () => {
             messages: [],
             lastActivity: new Date(),
             context: {},
+            metadata: {
+              user: config.bootData.user,
+            },
           });
 
           isNewThreadRef.current = false; // Reset the flag
@@ -116,7 +119,7 @@ const useAiAssistantRuntime = () => {
 
   // New thread creation handler
   const handleSwitchToNewThread = async () => {
-    const { thread_id } = await createThread();
+    const { thread_id } = await createThread({ metadata: { user: config.bootData.user } });
     threadIdRef.current = thread_id;
     isNewThreadRef.current = true; // Mark as new thread
   };

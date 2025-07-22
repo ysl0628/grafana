@@ -119,6 +119,10 @@ const ThreadDropdownItem: FC<{
     setInputValue(threadState?.title ?? t('ai-assistant.thread.new-chat', 'New Chat'));
   };
 
+  const handleDelete = async () => {
+    await thread.delete();
+  };
+
   if (isEditing) {
     return (
       <div className={styles.threadItemEdit}>
@@ -185,8 +189,8 @@ const ThreadDropdownItem: FC<{
               variant="secondary"
               size="sm"
               fill="text"
-              icon="archive-alt"
-              onClick={(e) => e.stopPropagation()}
+              icon="trash-alt"
+              onClick={handleDelete}
               aria-label={t('ai-assistant.thread.archive-aria-label', 'Archive thread')}
               className={styles.actionButton}
             />

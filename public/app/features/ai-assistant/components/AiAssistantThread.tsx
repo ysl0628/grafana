@@ -570,6 +570,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       opacity: 1,
     },
+    '&[disabled]': {
+      opacity: 0,
+      pointerEvents: 'none',
+      visibility: 'hidden',
+    },
   }),
   branchPicker: css({
     display: 'flex',

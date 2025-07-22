@@ -450,10 +450,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
   messageContent: css({
     padding: theme.spacing(2),
     wordBreak: 'break-word',
+    width: '100%',
   }),
   textContent: css({
+    width: '100%',
     color: theme.colors.text.primary,
     lineHeight: 1.6,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
   }),
   markdownContent: css({
     '& code': {
@@ -503,13 +509,13 @@ const getStyles = (theme: GrafanaTheme2) => ({
     border: `1px solid ${theme.colors.border.weak}`,
     borderBottom: 'none',
     padding: theme.spacing(1, 2),
-    fontSize: theme.typography.size.sm,
+    fontSize: theme.typography.bodySmall.fontSize,
     fontWeight: theme.typography.fontWeightMedium,
     color: theme.colors.text.primary,
   }),
   codeLanguage: css({
     textTransform: 'lowercase',
-    fontSize: theme.typography.size.xs,
+    fontSize: theme.typography.bodySmall.fontSize,
     color: theme.colors.text.secondary,
   }),
 });
@@ -521,6 +527,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightBold,
     lineHeight: theme.typography.h1.lineHeight,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -535,6 +545,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightMedium,
     lineHeight: theme.typography.h2.lineHeight,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -549,6 +563,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightMedium,
     lineHeight: theme.typography.h3.lineHeight,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -563,6 +581,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightMedium,
     lineHeight: theme.typography.h4.lineHeight,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -577,6 +599,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightMedium,
     lineHeight: theme.typography.h5.lineHeight,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -591,6 +617,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightMedium,
     lineHeight: theme.typography.h6.lineHeight,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -603,6 +633,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     marginTop: theme.spacing(1.5),
     lineHeight: 1.6,
     color: theme.colors.text.primary,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
     '&:first-child': {
       marginTop: 0,
     },
@@ -615,6 +649,10 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontWeight: theme.typography.fontWeightMedium,
     textDecoration: 'underline',
     textUnderlineOffset: '4px',
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-all',
+    maxWidth: '100%',
     '&:hover': {
       color: theme.colors.text.link,
     },
@@ -625,23 +663,45 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontStyle: 'italic',
     color: theme.colors.text.secondary,
     margin: theme.spacing(1.5, 0),
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
   }),
   unorderedList: css({
     marginTop: theme.spacing(1.5),
     marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(1.5),
+    marginLeft: theme.spacing(3), // 增加左邊距以避免項目符號被切掉
+    paddingLeft: theme.spacing(0.5),
     listStyleType: 'disc',
+    listStylePosition: 'outside', // 確保項目符號在外部
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    maxWidth: '100%',
     '& li': {
       marginTop: theme.spacing(0.5),
+      wordWrap: 'break-word',
+      overflowWrap: 'break-word',
+      wordBreak: 'break-word',
+      paddingLeft: theme.spacing(0.5),
     },
   }),
   orderedList: css({
     marginTop: theme.spacing(1.5),
     marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(1.5),
+    marginLeft: theme.spacing(3), // 增加左邊距以避免數字被切掉
+    paddingLeft: theme.spacing(0.5),
     listStyleType: 'decimal',
+    listStylePosition: 'outside', // 確保數字在外部顯示
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    maxWidth: '100%',
     '& li': {
       marginTop: theme.spacing(0.5),
+      wordWrap: 'break-word',
+      overflowWrap: 'break-word',
+      wordBreak: 'break-word',
+      paddingLeft: theme.spacing(0.5),
     },
   }),
   horizontalRule: css({
@@ -656,7 +716,29 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     width: '100%',
     borderCollapse: 'separate',
     borderSpacing: 0,
-    overflowY: 'auto',
+    display: 'block',
+    overflowX: 'auto',
+    maxWidth: '100%',
+    // 自定義滾動條樣式
+    '&::-webkit-scrollbar': {
+      height: '6px',
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: theme.colors.background.secondary,
+      borderRadius: '3px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: theme.colors.border.medium,
+      borderRadius: '3px',
+      '&:hover': {
+        backgroundColor: theme.colors.border.strong,
+      },
+    },
+    '& thead, & tbody, & tr': {
+      display: 'table',
+      width: '100%',
+      minWidth: 'max-content',
+    },
   }),
   tableHeader: css({
     backgroundColor: theme.colors.background.canvas,
@@ -664,6 +746,11 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     textAlign: 'left',
     fontWeight: theme.typography.fontWeightBold,
     border: `1px solid ${theme.colors.border.weak}`,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    minWidth: 'max-content',
+    whiteSpace: 'nowrap',
     '&:first-child': {
       borderTopLeftRadius: theme.shape.radius.default,
     },
@@ -682,6 +769,11 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     borderTop: 'none',
     padding: theme.spacing(1, 1.5),
     textAlign: 'left',
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+    minWidth: 'max-content',
+    whiteSpace: 'nowrap',
     '&[align="center"]': {
       textAlign: 'center',
     },
@@ -718,6 +810,25 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     fontFamily: theme.typography.fontFamilyMonospace,
     fontSize: theme.typography.size.sm,
+    whiteSpace: 'pre',
+    overflowWrap: 'normal',
+    wordBreak: 'normal',
+    maxWidth: '100%',
+    // 讓代碼塊可以橫向滾動而不是被隱藏
+    '&::-webkit-scrollbar': {
+      height: '6px',
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: theme.colors.background.secondary,
+      borderRadius: '3px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: theme.colors.border.medium,
+      borderRadius: '3px',
+      '&:hover': {
+        backgroundColor: theme.colors.border.strong,
+      },
+    },
   }),
   inlineCode: css({
     backgroundColor: theme.colors.background.canvas,
@@ -727,10 +838,21 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
     fontFamily: theme.typography.fontFamilyMonospace,
     fontSize: theme.typography.size.sm,
     fontWeight: theme.typography.fontWeightMedium,
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-all',
+    maxWidth: '100%',
+    display: 'inline',
+    whiteSpace: 'pre-wrap',
   }),
   codeBlock: css({
     fontFamily: theme.typography.fontFamilyMonospace,
     fontSize: theme.typography.size.sm,
+    whiteSpace: 'pre',
+    overflowWrap: 'normal',
+    wordBreak: 'normal',
+    maxWidth: '100%',
+    display: 'block',
   }),
 });
 

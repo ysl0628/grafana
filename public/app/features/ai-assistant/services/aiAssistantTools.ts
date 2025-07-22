@@ -1,12 +1,12 @@
-import { DataQuery, TimeRange } from '@grafana/data';
-import { getBackendSrv, locationService } from '@grafana/runtime';
-import { contextSrv } from 'app/core/core';
+import { TimeRange, DateTime, dateTime } from '@grafana/data';
+import { getBackendSrv, getLocationSrv } from '@grafana/runtime';
+import { contextSrv } from '../../../core/core';
 
-import { GrafanaContext, AiAssistantTools, ToolCall } from '../types/aiAssistant';
+import { GrafanaContext, AiAssistantTools, ToolCall, DataQuery } from '../types/aiAssistant';
 
 /**
  * AI Assistant Tools Service
- * 
+ *
  * Provides AI assistant with tools to interact with Grafana APIs and functionality.
  * All tools include proper permission validation and error handling.
  */
@@ -16,11 +16,11 @@ import { GrafanaContext, AiAssistantTools, ToolCall } from '../types/aiAssistant
  */
 export function getAiAssistantTools(): AiAssistantTools {
   return {
-    getDashboardInfo,
-    queryData,
-    navigateToUrl,
-    getCurrentUser,
-    getTimeSeries,
+    getDashboardInfo: (context: GrafanaContext) => getDashboardInfo(context),
+    queryData: (query: DataQuery, context: GrafanaContext) => queryData(query, context),
+    navigateToUrl: (url: string) => navigateToUrl(url),
+    getCurrentUser: () => getCurrentUser(),
+    getTimeSeries: (query: DataQuery, context: GrafanaContext) => getTimeSeries(query, context),
   };
 }
 
@@ -29,14 +29,14 @@ export function getAiAssistantTools(): AiAssistantTools {
  */
 export async function getDashboardInfo(context: GrafanaContext): Promise<any> {
   validatePermission('dashboard:read');
-  
+
   if (!context.dashboardId) {
     throw new Error('No dashboard ID provided in context');
   }
-  
+
   try {
     const response = await getBackendSrv().get(`/api/dashboards/uid/${context.dashboardId}`);
-    
+
     return {
       uid: response.dashboard.uid,
       title: response.dashboard.title,
@@ -54,7 +54,7 @@ export async function getDashboardInfo(context: GrafanaContext): Promise<any> {
       created: response.dashboard.created,
       updated: response.dashboard.updated,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching dashboard info:', error);
     throw new Error(`Failed to fetch dashboard information: ${error.message}`);
   }
@@ -65,22 +65,22 @@ export async function getDashboardInfo(context: GrafanaContext): Promise<any> {
  */
 export async function queryData(query: DataQuery, context: GrafanaContext): Promise<any> {
   validatePermission('datasource:read');
-  
+
   if (!query.datasource) {
     throw new Error('No datasource specified in query');
   }
-  
+
   try {
     const requestData = {
       queries: [query],
       range: context.timeRange || getDefaultTimeRange(),
       scopedVars: {},
     };
-    
+
     const response = await getBackendSrv().post('/api/ds/query', requestData);
-    
-    return response.results?.[query.refId] || [];
-  } catch (error) {
+
+    return response.results?.[query.refId!] || [];
+  } catch (error: any) {
     console.error('Error executing query:', error);
     throw new Error(`Failed to execute query: ${error.message}`);
   }
@@ -93,15 +93,15 @@ export async function navigateToUrl(url: string): Promise<void> {
   if (!url) {
     throw new Error('URL is required');
   }
-  
+
   // Validate URL is within Grafana domain for security
   if (!isValidGrafanaUrl(url)) {
     throw new Error('Invalid URL: Only Grafana URLs are allowed');
   }
-  
+
   try {
-    locationService.push(url);
-  } catch (error) {
+    window.location.href = url;
+  } catch (error: any) {
     console.error('Error navigating to URL:', error);
     throw new Error(`Failed to navigate to URL: ${error.message}`);
   }
@@ -113,23 +113,29 @@ export async function navigateToUrl(url: string): Promise<void> {
 export async function getCurrentUser(): Promise<any> {
   try {
     const user = contextSrv.user;
-    
+
     return {
+      isSignedIn: user.isSignedIn,
       id: user.id,
+      uid: user.uid,
       login: user.login,
-      name: user.name,
       email: user.email,
+      name: user.name,
+      externalUserId: user.externalUserId,
+      theme: user.theme,
+      orgCount: user.orgCount,
       orgId: user.orgId,
       orgName: user.orgName,
       orgRole: user.orgRole,
       isGrafanaAdmin: user.isGrafanaAdmin,
-      isSignedIn: user.isSignedIn,
-      theme: user.theme,
+      gravatarUrl: user.gravatarUrl,
       timezone: user.timezone,
-      locale: user.locale,
+      weekStart: user.weekStart,
+      regionalFormat: user.regionalFormat,
+      language: user.language,
       permissions: user.permissions,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting current user:', error);
     throw new Error(`Failed to get current user: ${error.message}`);
   }
@@ -140,19 +146,19 @@ export async function getCurrentUser(): Promise<any> {
  */
 export async function getTimeSeries(query: DataQuery, context: GrafanaContext): Promise<any> {
   validatePermission('datasource:read');
-  
+
   try {
     const data = await queryData(query, context);
-    
+
     // Transform data to time series format
     const timeSeries = data.map((series: any) => ({
       target: series.target,
       datapoints: series.datapoints,
       tags: series.tags,
     }));
-    
+
     return timeSeries;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting time series:', error);
     throw new Error(`Failed to get time series data: ${error.message}`);
   }
@@ -163,23 +169,41 @@ export async function getTimeSeries(query: DataQuery, context: GrafanaContext): 
  */
 export async function executeToolCall(toolCall: ToolCall, context: GrafanaContext): Promise<any> {
   const tools = getAiAssistantTools();
-  
+
   if (!tools[toolCall.name as keyof AiAssistantTools]) {
     throw new Error(`Unknown tool: ${toolCall.name}`);
   }
-  
+
   try {
     const tool = tools[toolCall.name as keyof AiAssistantTools];
-    const result = await tool(toolCall.parameters, context);
-    
+    let result;
+
+    // Handle different tool signatures
+    switch (toolCall.name) {
+      case 'queryData':
+      case 'getTimeSeries':
+        result = await (tool as any)(toolCall.parameters.query, context);
+        break;
+      case 'navigateToUrl':
+        result = await (tool as any)(toolCall.parameters.url);
+        break;
+      case 'getCurrentUser':
+        result = await (tool as any)();
+        break;
+      case 'getDashboardInfo':
+      default:
+        result = await (tool as any)(context);
+        break;
+    }
+
     return {
       ...toolCall,
       result,
       error: null,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error executing tool ${toolCall.name}:`, error);
-    
+
     return {
       ...toolCall,
       result: null,
@@ -205,7 +229,7 @@ function isValidGrafanaUrl(url: string): boolean {
   if (url.startsWith('/')) {
     return true;
   }
-  
+
   // Allow URLs within the same origin
   try {
     const urlObj = new URL(url);
@@ -219,9 +243,9 @@ function isValidGrafanaUrl(url: string): boolean {
  * Get default time range
  */
 function getDefaultTimeRange(): TimeRange {
-  const now = new Date();
-  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-  
+  const now = dateTime();
+  const oneHourAgo = dateTime().subtract(1, 'hour');
+
   return {
     from: oneHourAgo,
     to: now,
@@ -237,9 +261,9 @@ function getDefaultTimeRange(): TimeRange {
  */
 export async function getDashboardPanels(context: GrafanaContext): Promise<any> {
   validatePermission('dashboard:read');
-  
+
   const dashboardInfo = await getDashboardInfo(context);
-  
+
   return dashboardInfo.panels || [];
 }
 
@@ -248,10 +272,10 @@ export async function getDashboardPanels(context: GrafanaContext): Promise<any> 
  */
 export async function getDatasourceInfo(datasourceUid: string): Promise<any> {
   validatePermission('datasource:read');
-  
+
   try {
     const response = await getBackendSrv().get(`/api/datasources/uid/${datasourceUid}`);
-    
+
     return {
       uid: response.uid,
       name: response.name,
@@ -261,7 +285,7 @@ export async function getDatasourceInfo(datasourceUid: string): Promise<any> {
       isDefault: response.isDefault,
       readOnly: response.readOnly,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching datasource info:', error);
     throw new Error(`Failed to fetch datasource information: ${error.message}`);
   }
@@ -271,14 +295,13 @@ export async function getDatasourceInfo(datasourceUid: string): Promise<any> {
  * Get current dashboard context
  */
 export async function getCurrentDashboardContext(): Promise<GrafanaContext> {
-  const location = locationService.getLocation();
   const user = contextSrv.user;
-  
+
   return {
     user,
-    path: location.pathname,
-    query: location.search,
-    dashboardId: extractDashboardId(location.pathname),
+    path: window.location.pathname,
+    query: Object.fromEntries(new URLSearchParams(window.location.search)),
+    dashboardId: extractDashboardId(window.location.pathname),
   };
 }
 
@@ -295,8 +318,7 @@ function extractDashboardId(pathname: string): string | undefined {
  */
 export function canUseAiAssistantTools(): boolean {
   // Check if user has basic permissions
-  return contextSrv.hasPermission('datasource:read') || 
-         contextSrv.hasPermission('dashboard:read');
+  return contextSrv.hasPermission('datasource:read') || contextSrv.hasPermission('dashboard:read');
 }
 
 /**
@@ -304,18 +326,18 @@ export function canUseAiAssistantTools(): boolean {
  */
 export function getAvailableToolNames(): string[] {
   const tools: string[] = [];
-  
+
   if (contextSrv.hasPermission('dashboard:read')) {
     tools.push('getDashboardInfo', 'getDashboardPanels');
   }
-  
+
   if (contextSrv.hasPermission('datasource:read')) {
     tools.push('queryData', 'getTimeSeries', 'getDatasourceInfo');
   }
-  
+
   // Navigation is always available
   tools.push('navigateToUrl', 'getCurrentUser');
-  
+
   return tools;
 }
 

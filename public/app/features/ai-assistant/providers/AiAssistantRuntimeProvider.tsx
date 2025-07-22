@@ -60,13 +60,6 @@ const useAiAssistantRuntime = () => {
 
         // Check if this was a new thread with a human message
         const shouldAddToThreadList = isNewThreadRef.current && messages.length > 0 && messages[0].type === 'human';
-        console.log('Thread management check:', { 
-          isNewThread: isNewThreadRef.current, 
-          hasMessages: messages.length > 0, 
-          firstMessageType: messages[0]?.type,
-          shouldAdd: shouldAddToThreadList,
-          threadId 
-        });
 
         yield* await generator;
 
@@ -95,23 +88,6 @@ const useAiAssistantRuntime = () => {
 
           isNewThreadRef.current = false; // Reset the flag
         }
-
-        // Stream responses
-        // for await (const chunk of stream) {
-        //   if (chunk.event === 'messages' && chunk.data) {
-        //     // Convert LangChain message back to AI Assistant format
-        //     const message = chunk.data;
-        //     if (message.type === 'ai') {
-        //       yield {
-        //         id: message.id || `msg-${Date.now()}`,
-        //         role: 'assistant' as const,
-        //         content: typeof message.content === 'string' ? message.content : message.content?.[0]?.text || '',
-        //         timestamp: new Date(),
-        //         context: grafanaContext,
-        //       };
-        //     }
-        //   }
-        // }
       } catch (error) {
         console.error('Error streaming messages:', error);
         return;
@@ -125,26 +101,12 @@ const useAiAssistantRuntime = () => {
     try {
       const state = await getThreadState(externalId);
       threadIdRef.current = externalId;
-
-      // Convert LangChain messages to AI Assistant format
-      // const messages = (state.values?.messages || []).map((msg: any) => ({
-      //   id: msg.id || `msg-${Date.now()}`,
-      //   role: msg.type === 'human' ? 'user' : msg.type === 'ai' ? 'assistant' : 'system',
-      //   content: typeof msg.content === 'string' ? msg.content : msg.content?.[0]?.text || '',
-      //   timestamp: new Date(),
-      // }));
-
-      // return {
-      //   messages,
-      //   interrupts: [], // LangGraph SDK doesn't expose interrupts in the same way
       return {
         messages: (state.values as { messages?: LangChainMessage[] }).messages ?? [],
         interrupts: state.tasks[0]?.interrupts ?? [],
       };
     } catch (error) {
       console.error('Error switching to thread:', error);
-
-      // Return empty state to prevent UI crash
       return {
         messages: [],
         interrupts: [],

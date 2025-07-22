@@ -1,7 +1,41 @@
 import { ComponentType } from 'react';
 
-import { TimeRange, DataQuery } from '@grafana/data';
-import { User } from 'app/types/user';
+import { TimeRange } from '@grafana/data';
+
+export interface DataQuery {
+  refId: string;
+  hide?: boolean;
+  key?: string;
+  queryType?: string;
+  datasource?: any;
+}
+
+export interface User {
+  isSignedIn: boolean;
+  id: number;
+  uid: string;
+  login: string;
+  email: string;
+  name: string;
+  externalUserId: string;
+  theme: string;
+  orgCount: number;
+  orgId: number;
+  orgName: string;
+  orgRole: string;
+  isGrafanaAdmin: boolean;
+  gravatarUrl: string;
+  timezone: string;
+  weekStart: string;
+  regionalFormat: string;
+  language: string;
+  helpFlags1: number;
+  hasEditPermissionInFolders: boolean;
+  permissions?: any;
+  analytics: any;
+  fiscalYearStartMonth: number;
+  authenticatedBy: string;
+}
 
 export interface AiAssistantMessage {
   id: string;
@@ -60,6 +94,7 @@ export interface ToolCall {
   parameters: Record<string, any>;
   result?: any;
   error?: string;
+  executionTime?: number;
 }
 
 export interface AiAssistantTools {
@@ -141,6 +176,7 @@ export interface AiAssistantToolsHookResult {
   tools: AiAssistantTools;
   executeToolCall: (toolCall: ToolCall) => Promise<any>;
   validatePermissions: (toolName: string) => boolean;
+  availableTools?: string[];
 }
 
 // Local storage keys

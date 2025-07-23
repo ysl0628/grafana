@@ -12,10 +12,9 @@ import { useStyles2, Icon, Button, Text } from '@grafana/ui';
  * Displays tool execution status with collapsible details.
  * Supports different status types with appropriate icons and styling.
  */
-export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText, result, status }) => {
+export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText, args, result, status, ...rest }) => {
   const styles = useStyles2(getStyles);
   const [isCollapsed, setIsCollapsed] = useState(true);
-
   // Get tool status styling based on multiple parameters
   const getStatusConfig = () => {
     const statusConfigs = {

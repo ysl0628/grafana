@@ -60,7 +60,6 @@ export const convertLangChainMessages: useExternalMessageConverter.Callback<Lang
               try {
                 // Validate tool call has required fields
                 if (!chunk.id || !chunk.name) {
-                  console.log('chunk', chunk);
                   console.warn('Invalid tool call missing id or name:', chunk);
                   return null;
                 }

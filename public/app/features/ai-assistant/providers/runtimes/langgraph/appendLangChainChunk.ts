@@ -68,27 +68,34 @@ export const appendLangChainChunk = (
   const newToolCalls = [...(prev.tool_calls ?? [])];
   for (const chunk of curr.tool_call_chunks ?? []) {
     try {
-      // Ensure valid chunk index
-      if (!chunk.index || chunk.index < 1) {
+      // Ensure valid chunk index (allow index 0)
+      if (chunk.index === null || chunk.index === undefined || chunk.index < 0) {
         continue;
       }
 
-      const existing = newToolCalls[chunk.index - 1] ?? { argsText: '' };
+      const arrayIndex = chunk.index;
+      const existing = newToolCalls[arrayIndex] ?? { argsText: '', args: {} };
       const newArgsText = (existing.argsText || '') + (chunk.args || '');
 
+
       // Parse args with fallback
-      let parsedArgs;
-      try {
-        parsedArgs = parsePartialJsonObject(newArgsText) || ('args' in existing ? existing.args : {});
-      } catch (parseError) {
-        console.warn('Failed to parse tool call args:', parseError, 'argsText:', newArgsText);
-        parsedArgs = 'args' in existing ? existing.args : {};
+      let parsedArgs = existing.args || {};
+      if (newArgsText.trim()) {
+        try {
+          const parsed = parsePartialJsonObject(newArgsText);
+          if (parsed !== null && typeof parsed === 'object') {
+            parsedArgs = parsed;
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse tool call args:', parseError, 'argsText:', newArgsText);
+          // Keep existing args if parsing fails
+        }
       }
 
-      newToolCalls[chunk.index - 1] = {
-        // id: chunk.id,
-        // name: chunk.name,
+      newToolCalls[arrayIndex] = {
         ...existing,
+        id: chunk.id || existing.id,
+        name: chunk.name || existing.name,
         argsText: newArgsText,
         args: parsedArgs,
       };

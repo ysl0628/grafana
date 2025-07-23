@@ -9,7 +9,6 @@ import {
   ThreadState,
   AI_ASSISTANT_STORAGE_KEYS,
 } from '../types/aiAssistant';
-import { config } from '@grafana/runtime';
 
 // Action types
 type AiAssistantAction =
@@ -135,18 +134,15 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
         const threadList = await getThreadList();
-        const user = config.bootData.user;
         // Convert LangGraph threads to our ThreadState format
-        const threads: ThreadState[] = threadList
-          .map((thread: any) => ({
-            threadId: thread.thread_id,
-            title: thread.metadata?.threadTitle || 'New Chat',
-            messages: [],
-            lastActivity: new Date(thread.updated_at || thread.created_at),
-            context: thread.metadata?.grafanaContext || {},
-            metadata: thread.metadata,
-          }))
-          .filter((thread) => thread.metadata?.user?.uid === user.uid);
+        const threads: ThreadState[] = threadList.map((thread: any) => ({
+          threadId: thread.thread_id,
+          title: thread.metadata?.threadTitle || 'New Chat',
+          messages: [],
+          lastActivity: new Date(thread.updated_at || thread.created_at),
+          context: thread.metadata?.grafanaContext || {},
+          metadata: thread.metadata,
+        }));
         dispatch({ type: 'SET_THREADS', payload: threads });
 
         // Restore current thread if stored

@@ -1,5 +1,5 @@
-import { TimeRange, DateTime, dateTime } from '@grafana/data';
-import { getBackendSrv, getLocationSrv } from '@grafana/runtime';
+import { TimeRange, dateTime } from '@grafana/data';
+import { getBackendSrv } from '@grafana/runtime';
 import { contextSrv } from '../../../core/core';
 
 import { GrafanaContext, AiAssistantTools, ToolCall, DataQuery } from '../types/aiAssistant';

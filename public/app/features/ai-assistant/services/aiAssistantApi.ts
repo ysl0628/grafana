@@ -202,6 +202,11 @@ export const getThreadList = async () => {
   return client.threads.search({
     limit: 10,
     offset: 0,
+    metadata: {
+      user: {
+        uid: config.bootData.user.uid,
+      },
+    },
   });
 };
 

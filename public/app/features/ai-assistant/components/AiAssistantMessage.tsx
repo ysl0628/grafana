@@ -20,6 +20,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { useStyles2, Button, Stack, Text, Tooltip, Alert, CodeEditor, Spinner } from '@grafana/ui';
 import { ToolFallback } from './ToolFallback';
+import { DirectDataLogsToolFallback } from './examples/DirectDataLogsPanelUsage';
 
 /**
  * AI Assistant Message Component
@@ -39,6 +40,9 @@ export const AiAssistantMessage: React.FC = () => {
             Text: MarkdownText,
             tools: {
               Fallback: ToolFallback,
+              by_name: {
+                query_loki_logs: DirectDataLogsToolFallback,
+              },
               // by_name: {
               //   getDashboardInfo: DashboardInfoTool,
               //   queryData: QueryDataTool,

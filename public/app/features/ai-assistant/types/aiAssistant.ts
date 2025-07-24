@@ -216,3 +216,9 @@ export const AI_ASSISTANT_EXTENSION_POINT = {
   COMPONENT_TITLE: 'AI Assistant',
   DESCRIPTION: 'AI-powered assistant for Grafana',
 } as const;
+
+export interface LogData {
+  labels: Record<string, string>;
+  line: string;
+  timestamp: string;
+}

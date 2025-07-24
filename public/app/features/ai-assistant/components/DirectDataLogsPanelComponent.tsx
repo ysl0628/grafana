@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { css } from '@emotion/css';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {
@@ -67,38 +67,11 @@ export const DirectDataLogsPanelComponent: React.FC<DirectDataLogsPanelComponent
   isLoading = false,
   error = null,
 }) => {
-  const styles = useStyles2(getStyles);
-
-  const {
-    title = 'Logs',
-    height = 250,
-    wrapLogMessage = true,
-    showTime = true,
-    showLabels = true,
-    enableLogDetails = true,
-    showCommonLabels = false,
-    prettifyLogMessage = true,
-    sortOrder = 'Descending',
-    dedupStrategy = 'none',
-  } = options;
+  const { title = 'Logs', height = 250 } = options;
 
   return (
     <SceneContextProvider>
-      <DirectLogsPanelContent
-        data={data}
-        title={title}
-        height={height}
-        wrapLogMessage={wrapLogMessage}
-        showTime={showTime}
-        showLabels={showLabels}
-        enableLogDetails={enableLogDetails}
-        showCommonLabels={showCommonLabels}
-        prettifyLogMessage={prettifyLogMessage}
-        sortOrder={sortOrder}
-        dedupStrategy={dedupStrategy}
-        isLoading={isLoading}
-        error={error}
-      />
+      <DirectLogsPanelContent data={data} title={title} height={height} isLoading={isLoading} error={error} />
     </SceneContextProvider>
   );
 };
@@ -110,14 +83,6 @@ const DirectLogsPanelContent: React.FC<{
   data: Array<LogData>;
   title: string;
   height: number;
-  wrapLogMessage: boolean;
-  showTime: boolean;
-  showLabels: boolean;
-  enableLogDetails: boolean;
-  showCommonLabels: boolean;
-  prettifyLogMessage: boolean;
-  sortOrder: 'Ascending' | 'Descending';
-  dedupStrategy: 'none' | 'exact' | 'numbers' | 'signature';
   isLoading: boolean;
   error: Error | null;
 }> = ({ data, title, height, isLoading, error }) => {
@@ -196,7 +161,7 @@ const DirectLogsPanelContent: React.FC<{
   }
 
   return (
-    <div className={styles.container} style={{ height }}>
+    <div className={styles.container} style={{ height: 300 }}>
       <AutoSizer>
         {({ height: autoHeight, width }) => (
           <VizGridLayout minHeight={autoHeight} minWidth={width}>
@@ -225,10 +190,6 @@ export const createDirectDataLogsPanel = (config: {
       options={{
         title: config.title || 'Logs',
         height: config.height || 400,
-        wrapLogMessage: true,
-        showTime: true,
-        showLabels: true,
-        enableLogDetails: true,
         ...config.options,
       }}
       isLoading={config.isLoading}
@@ -254,15 +215,7 @@ export const createLogsFromToolResult = (toolResult: {
     title: toolResult.query ? `Query: ${toolResult.query}` : 'Logs',
     isLoading: toolResult.isLoading || false,
     error,
-    options: {
-      wrapLogMessage: true,
-      showTime: true,
-      showLabels: true,
-      enableLogDetails: true,
-      showCommonLabels: false,
-      prettifyLogMessage: true,
-      sortOrder: 'Descending',
-    },
+    options: {},
   });
 };
 
@@ -278,13 +231,7 @@ export const DirectDataLogsPanelPresets = {
       data,
       title: appName ? `${appName} - Error Logs` : 'Error Logs',
       height: 350,
-      options: {
-        wrapLogMessage: true,
-        showTime: true,
-        showLabels: true,
-        sortOrder: 'Descending',
-        enableLogDetails: true,
-      },
+      options: {},
     }),
 
   /**
@@ -295,12 +242,7 @@ export const DirectDataLogsPanelPresets = {
       data,
       title: serviceName ? `${serviceName} - Recent Activity` : 'Recent Activity',
       height: 400,
-      options: {
-        wrapLogMessage: true,
-        showTime: true,
-        showLabels: true,
-        sortOrder: 'Descending',
-      },
+      options: {},
     }),
 
   /**
@@ -311,14 +253,7 @@ export const DirectDataLogsPanelPresets = {
       data,
       title: 'Debug Information',
       height: 500,
-      options: {
-        wrapLogMessage: false,
-        showTime: true,
-        showLabels: true,
-        enableLogDetails: true,
-        showCommonLabels: true,
-        prettifyLogMessage: true,
-      },
+      options: {},
     }),
 
   /**
@@ -329,13 +264,7 @@ export const DirectDataLogsPanelPresets = {
       data,
       title: 'Logs',
       height: 250,
-      options: {
-        wrapLogMessage: true,
-        showTime: false,
-        showLabels: false,
-        enableLogDetails: false,
-        showCommonLabels: false,
-      },
+      options: {},
     }),
 };
 
@@ -349,6 +278,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
 
     // Proper spacing for AI Assistant context
     margin: theme.spacing(1, 0),
+
+    // Override log details label width using CSS-in-JS class pattern
+    '& td[class*="logs-row-details__label"]': {
+      maxWidth: '50em', // Increase from original 30em
+      minWidth: '15em', // Set minimum width to avoid being too narrow
+    },
 
     // Responsive behavior
     [theme.breakpoints.down('md')]: {

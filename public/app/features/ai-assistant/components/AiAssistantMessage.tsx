@@ -19,7 +19,7 @@ import React, { useState, FC } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { useStyles2, Button, Text, Tooltip, Alert } from '@grafana/ui';
-import { ToolFallback, LogsToolFallback } from './tool-fallback';
+import { ToolFallback, LokiToolFallback } from './tool-fallback';
 
 /**
  * AI Assistant Message Component
@@ -40,7 +40,7 @@ export const AiAssistantMessage: React.FC = () => {
             tools: {
               Fallback: ToolFallback,
               by_name: {
-                query_loki_logs: LogsToolFallback,
+                query_loki_logs: LokiToolFallback,
               },
               // by_name: {
               //   getDashboardInfo: DashboardInfoTool,
@@ -316,16 +316,17 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
   return (
     <div className={styles.codeHeader}>
       <span className={styles.codeLanguage}>{language?.toLowerCase()}</span>
-      <Tooltip content={t('ai-assistant.code.copy-tooltip', 'Copy code')}>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={isCopied ? 'check' : 'copy'}
-          onClick={onCopy}
-          disabled={!code || isCopied}
-          aria-label={t('ai-assistant.code.copy-aria-label', 'Copy code')}
-        />
-      </Tooltip>
+      <Button
+        variant="secondary"
+        size="sm"
+        icon={isCopied ? 'check' : 'copy'}
+        onClick={onCopy}
+        disabled={!code || isCopied}
+        tooltip={
+          isCopied ? t('ai-assistant.code.copied-tooltip', 'Copied') : t('ai-assistant.code.copy-tooltip', 'Copy code')
+        }
+        aria-label={t('ai-assistant.code.copy-aria-label', 'Copy code')}
+      />
     </div>
   );
 };
@@ -506,9 +507,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
     justifyContent: 'space-between',
     gap: theme.spacing(1),
     marginTop: theme.spacing(1),
-    borderTopLeftRadius: theme.shape.radius.default,
-    borderTopRightRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.background.canvas,
+    borderTopLeftRadius: '10px',
+    borderTopRightRadius: '10px',
+    backgroundColor: theme.colors.background.primary,
     border: `1px solid ${theme.colors.border.weak}`,
     borderBottom: 'none',
     padding: theme.spacing(1, 2),
@@ -802,8 +803,8 @@ const getMarkdownStyles = (theme: GrafanaTheme2) => ({
   }),
   preformatted: css({
     overflowX: 'auto',
-    borderBottomLeftRadius: theme.shape.radius.default,
-    borderBottomRightRadius: theme.shape.radius.default,
+    borderBottomLeftRadius: '10px',
+    borderBottomRightRadius: '10px',
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     backgroundColor: theme.colors.background.canvas,

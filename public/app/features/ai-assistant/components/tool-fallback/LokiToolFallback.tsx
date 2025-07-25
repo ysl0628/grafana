@@ -6,6 +6,7 @@ import { css } from '@emotion/css';
 import { DirectDataLogsPanelComponent, createLogsFromToolResult } from '../DirectDataLogsPanelComponent';
 import { LogData } from '../../types/aiAssistant';
 import { ToolLayoutWrapper } from './ToolLayoutWrapper';
+import { createStatFromToolResult } from '../StatPanelComponent';
 
 /**
  * Example implementations using DirectDataLogsPanelComponent
@@ -15,10 +16,10 @@ import { ToolLayoutWrapper } from './ToolLayoutWrapper';
 /**
  * Example 1: ToolFallback that displays logs from tool result data
  */
-export const LogsToolFallback: ToolCallContentPartComponent = ({ toolName, args, result, status, isError }) => {
+export const LokiToolFallback: ToolCallContentPartComponent = ({ toolName, args, result, status, isError }) => {
   const data = result ? JSON.parse(result) : [];
-
   const styles = useStyles2(getStyles);
+  const isLog = data?.[0]?.labels;
 
   return (
     <div>
@@ -53,20 +54,26 @@ export const LogsToolFallback: ToolCallContentPartComponent = ({ toolName, args,
         </div>
       </ToolLayoutWrapper>
       {toolName === 'query_loki_logs' && result && status?.type === 'complete' ? (
-        <ToolLayoutWrapper toolName={'Logs Panel'} status={status} completeIcon="chart-line" showStatus={false}>
+        <ToolLayoutWrapper
+          toolName={isLog ? 'Logs Panel' : 'Stat Panel'}
+          status={status}
+          completeIcon="chart-line"
+          showStatus={false}
+        >
           <div>
-            {createLogsFromToolResult({
-              data,
-              query: args.logql,
-              datasourceUid: args.datasourceUid,
-              error: isError ? result : undefined,
-            })}
-
-            {data && data.length > 0 && (
-              <p style={{ marginTop: '8px' }}>
-                <em>Found {data.length} log entries</em>
-              </p>
-            )}
+            {isLog
+              ? createLogsFromToolResult({
+                  data,
+                  query: args.logql,
+                  datasourceUid: args.datasourceUid,
+                  error: isError ? result : undefined,
+                })
+              : createStatFromToolResult({
+                  data,
+                  query: args.logql,
+                  datasourceUid: args.datasourceUid,
+                  error: isError ? result : undefined,
+                })}
           </div>
         </ToolLayoutWrapper>
       ) : (
@@ -220,6 +227,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
 });
 
 export default {
-  LogsToolFallback,
+  LokiToolFallback,
   InteractiveLogExplorer,
 };

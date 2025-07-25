@@ -230,7 +230,7 @@ const AiAssistantComposer: React.FC = () => {
 
   return (
     <ComposerPrimitive.Root className={styles.composer}>
-      {isRunning && <LoadingBar width={100} delay={1000} />}
+      {isRunning && <LoadingBar width={200} delay={300} />}
       <div className={styles.composerHeader}>
         <AtMenu>
           <Button

@@ -1,11 +1,9 @@
 import React from 'react';
-import { GrafanaTheme2 } from '@grafana/data';
 import { type ToolCallContentPartComponent } from '@assistant-ui/react';
-import { useStyles2 } from '@grafana/ui';
-import { css } from '@emotion/css';
 import { DirectDataLogsPanelComponent, createLogsFromToolResult } from '../DirectDataLogsPanelComponent';
 import { LogData } from '../../types/aiAssistant';
 import { ToolLayoutWrapper } from './ToolLayoutWrapper';
+import { QueryToolFallback } from './QueryToolFallback';
 import { createStatFromToolResult } from '../StatPanelComponent';
 
 /**
@@ -18,41 +16,11 @@ import { createStatFromToolResult } from '../StatPanelComponent';
  */
 export const LokiToolFallback: ToolCallContentPartComponent = ({ toolName, args, result, status, isError }) => {
   const data = result ? JSON.parse(result) : [];
-  const styles = useStyles2(getStyles);
   const isLog = data?.[0]?.labels;
 
   return (
     <div>
-      <ToolLayoutWrapper toolName={toolName} status={status}>
-        <div className={styles.queryInfo}>
-          <table className={styles.queryInfoTable}>
-            <tbody>
-              <tr>
-                <td>datasource_uid:</td>
-                <td>{args.datasourceUid}</td>
-              </tr>
-              <tr>
-                <td>query:</td>
-                <td>
-                  <code>{args.logql}</code>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <p className={styles.outputTitle}>
-            <strong>Output</strong>
-          </p>
-          <table className={styles.outputTable}>
-            <tbody>
-              <tr>
-                <td>result:</td>
-                <td>{result}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </ToolLayoutWrapper>
+      <QueryToolFallback toolName={toolName} args={args} result={result} status={status} />
       {toolName === 'query_loki_logs' && result && status?.type === 'complete' ? (
         <ToolLayoutWrapper
           toolName={isLog ? 'Logs Panel' : 'Stat Panel'}
@@ -164,67 +132,6 @@ export const InteractiveLogExplorer: React.FC<{
     </div>
   );
 };
-
-const getStyles = (theme: GrafanaTheme2) => ({
-  queryInfo: css({
-    margin: theme.spacing(0, 1),
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(1),
-    fontSize: '12px',
-    color: theme.colors.text.secondary,
-    fontFamily: theme.typography.fontFamily,
-  }),
-  // 不要有 border
-  queryInfoTable: css({
-    width: '100%',
-    borderCollapse: 'separate',
-    borderSpacing: '0 4px',
-    '& td:first-child': {
-      width: '150px', // 設定第一欄固定寬度
-      minWidth: '150px',
-      maxWidth: '150px',
-      fontWeight: theme.typography.fontWeightMedium,
-      fontFamily: theme.typography.fontFamilyMonospace,
-      color: theme.colors.text.secondary,
-      whiteSpace: 'nowrap', // 不換行
-      paddingRight: theme.spacing(2),
-      verticalAlign: 'top', // 文字對齊到欄位頂部
-    },
-    '& td:nth-child(2)': {
-      wordBreak: 'break-word',
-      fontFamily: theme.typography.fontFamilyMonospace,
-      color: theme.colors.text.primary,
-    },
-  }),
-  outputTitle: css({
-    margin: theme.spacing(2, 0, 1, 0),
-    fontSize: '14px',
-    color: theme.colors.text.primary,
-    fontFamily: 'inherit',
-  }),
-  outputTable: css({
-    width: '100%',
-    borderCollapse: 'separate',
-    borderSpacing: '0 4px',
-    '& td:first-child': {
-      width: '150px', // 與上面的 table 保持一致
-      minWidth: '150px',
-      maxWidth: '150px',
-      fontWeight: theme.typography.fontWeightMedium,
-      fontFamily: theme.typography.fontFamilyMonospace,
-      color: theme.colors.text.secondary,
-      whiteSpace: 'nowrap',
-      paddingRight: theme.spacing(2),
-      verticalAlign: 'top', // 文字對齊到欄位頂部
-    },
-    '& td:nth-child(2)': {
-      wordBreak: 'break-word',
-      fontFamily: theme.typography.fontFamilyMonospace,
-      color: theme.colors.text.primary,
-    },
-  }),
-});
 
 export default {
   LokiToolFallback,

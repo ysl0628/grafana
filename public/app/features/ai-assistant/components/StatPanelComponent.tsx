@@ -291,6 +291,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     textAlign: 'start',
     color: theme.colors.warning.main,
     fontSize: theme.typography.body.fontSize,
+    margin: 0,
   }),
 
   loadingContainer: css({
@@ -311,6 +312,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     textAlign: 'center',
     color: theme.colors.info.main,
     fontSize: theme.typography.body.fontSize,
+    margin: 0,
   }),
 
   emptyContainer: css({
@@ -331,6 +333,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     textAlign: 'center',
     color: theme.colors.text.secondary,
     fontSize: theme.typography.body.fontSize,
+    margin: 0,
   }),
 });
 

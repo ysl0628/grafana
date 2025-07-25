@@ -1,7 +1,15 @@
 import React from 'react';
 import { css } from '@emotion/css';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { GrafanaTheme2, LoadingState, toDataFrame, makeTimeRange, FieldType, ThresholdsMode } from '@grafana/data';
+import {
+  GrafanaTheme2,
+  LoadingState,
+  toDataFrame,
+  makeTimeRange,
+  FieldType,
+  ThresholdsMode,
+  dateTime,
+} from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { SceneDataNode, VizConfigBuilders } from '@grafana/scenes';
 import { SceneContextProvider, VizGridLayout, VizPanel } from '@grafana/scenes-react';
@@ -83,12 +91,24 @@ const StatPanelContent: React.FC<{
     {
       name: 'Time',
       type: FieldType.time,
-      values: data?.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
+      values:
+        data?.map((log) => {
+          try {
+            return Number(JSON.parse(log.timestamp)) * 10000;
+          } catch {
+            return Date.now();
+          }
+        }) || [],
     },
     {
       name: 'Value',
       type: FieldType.number,
-      values: data?.map((log) => log?.line ?? 0),
+      values:
+        data?.map((log) => {
+          const value = log?.line;
+          const numValue = Number(value);
+          return isNaN(numValue) ? 0 : numValue;
+        }) || [],
     },
   ];
 
@@ -96,10 +116,9 @@ const StatPanelContent: React.FC<{
     data: {
       series: [toDataFrame({ fields })],
       state: isLoading ? LoadingState.Loading : error ? LoadingState.Error : LoadingState.Done,
-      timeRange: makeTimeRange('now-1h', 'now'),
+      timeRange: makeTimeRange(dateTime(fields[0].values[0]), dateTime(fields[0].values[fields[0].values.length - 1])),
     },
   });
-
   // Configure logs visualization
   const statViz = VizConfigBuilders.stat()
     .setOption('reduceOptions', {
@@ -226,6 +245,7 @@ export const StatPanelPresets = {
 
 const getStyles = (theme: GrafanaTheme2) => ({
   container: css({
+    height: '200px',
     width: '100%',
     border: `1px solid ${theme.colors.border.medium}`,
     borderRadius: theme.shape.radius.default,

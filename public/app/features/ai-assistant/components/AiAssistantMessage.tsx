@@ -18,9 +18,8 @@ import { css } from '@emotion/css';
 import React, { useState, FC } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Button, Stack, Text, Tooltip, Alert, CodeEditor, Spinner } from '@grafana/ui';
-import { ToolFallback } from './ToolFallback';
-import { DirectDataLogsToolFallback } from './examples/DirectDataLogsPanelUsage';
+import { useStyles2, Button, Text, Tooltip, Alert } from '@grafana/ui';
+import { ToolFallback, LogsToolFallback } from './tool-fallback';
 
 /**
  * AI Assistant Message Component
@@ -41,7 +40,7 @@ export const AiAssistantMessage: React.FC = () => {
             tools: {
               Fallback: ToolFallback,
               by_name: {
-                query_loki_logs: DirectDataLogsToolFallback,
+                query_loki_logs: LogsToolFallback,
               },
               // by_name: {
               //   getDashboardInfo: DashboardInfoTool,
@@ -85,128 +84,128 @@ const MarkdownText: React.FC = () => {
  *
  * Displays results from dashboard information queries.
  */
-const DashboardInfoTool: React.FC<{ result: any; isLoading: boolean }> = ({ result, isLoading }) => {
-  const styles = useStyles2(getStyles);
+// const DashboardInfoTool: React.FC<{ result: any; isLoading: boolean }> = ({ result, isLoading }) => {
+//   const styles = useStyles2(getStyles);
 
-  if (isLoading) {
-    return (
-      <div className={styles.toolResult}>
-        <Stack alignItems="center" gap={1}>
-          <Spinner size="sm" />
-          <Text variant="bodySmall">
-            {t('ai-assistant.tool.getting-dashboard-info', 'Getting dashboard information...')}
-          </Text>
-        </Stack>
-      </div>
-    );
-  }
+//   if (isLoading) {
+//     return (
+//       <div className={styles.toolResult}>
+//         <Stack alignItems="center" gap={1}>
+//           <Spinner size="sm" />
+//           <Text variant="bodySmall">
+//             {t('ai-assistant.tool.getting-dashboard-info', 'Getting dashboard information...')}
+//           </Text>
+//         </Stack>
+//       </div>
+//     );
+//   }
 
-  if (!result) {
-    return null;
-  }
+//   if (!result) {
+//     return null;
+//   }
 
-  return (
-    <div className={styles.toolResult}>
-      <Alert title={t('ai-assistant.tool.dashboard-info.title', 'Dashboard Information')} severity="info">
-        <Stack direction="column" gap={1}>
-          <Text variant="body">
-            <strong>{t('ai-assistant.tool.dashboard-info.title-label', 'Title')}:</strong> {result.title}
-          </Text>
-          <Text variant="body">
-            <strong>{t('ai-assistant.tool.dashboard-info.uid-label', 'UID')}:</strong> {result.uid}
-          </Text>
-          <Text variant="body">
-            <strong>{t('ai-assistant.tool.dashboard-info.panels-label', 'Panels')}:</strong>{' '}
-            {result.panels?.length || 0}
-          </Text>
-          {result.tags && result.tags.length > 0 && (
-            <Text variant="body">
-              <strong>{t('ai-assistant.tool.dashboard-info.tags-label', 'Tags')}:</strong> {result.tags.join(', ')}
-            </Text>
-          )}
-        </Stack>
-      </Alert>
-    </div>
-  );
-};
+//   return (
+//     <div className={styles.toolResult}>
+//       <Alert title={t('ai-assistant.tool.dashboard-info.title', 'Dashboard Information')} severity="info">
+//         <Stack direction="column" gap={1}>
+//           <Text variant="body">
+//             <strong>{t('ai-assistant.tool.dashboard-info.title-label', 'Title')}:</strong> {result.title}
+//           </Text>
+//           <Text variant="body">
+//             <strong>{t('ai-assistant.tool.dashboard-info.uid-label', 'UID')}:</strong> {result.uid}
+//           </Text>
+//           <Text variant="body">
+//             <strong>{t('ai-assistant.tool.dashboard-info.panels-label', 'Panels')}:</strong>{' '}
+//             {result.panels?.length || 0}
+//           </Text>
+//           {result.tags && result.tags.length > 0 && (
+//             <Text variant="body">
+//               <strong>{t('ai-assistant.tool.dashboard-info.tags-label', 'Tags')}:</strong> {result.tags.join(', ')}
+//             </Text>
+//           )}
+//         </Stack>
+//       </Alert>
+//     </div>
+//   );
+// };
 
-/**
- * Query Data Tool Component
- *
- * Displays results from data queries.
- */
-const QueryDataTool: React.FC<{ result: any; isLoading: boolean }> = ({ result, isLoading }) => {
-  const styles = useStyles2(getStyles);
-  const [showRawData, setShowRawData] = useState(false);
+// /**
+//  * Query Data Tool Component
+//  *
+//  * Displays results from data queries.
+//  */
+// const QueryDataTool: React.FC<{ result: any; isLoading: boolean }> = ({ result, isLoading }) => {
+//   const styles = useStyles2(getStyles);
+//   const [showRawData, setShowRawData] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className={styles.toolResult}>
-        <Stack alignItems="center" gap={1}>
-          <Spinner size="sm" />
-          <Text variant="bodySmall">{t('ai-assistant.tool.executing-query', 'Executing query...')}</Text>
-        </Stack>
-      </div>
-    );
-  }
+//   if (isLoading) {
+//     return (
+//       <div className={styles.toolResult}>
+//         <Stack alignItems="center" gap={1}>
+//           <Spinner size="sm" />
+//           <Text variant="bodySmall">{t('ai-assistant.tool.executing-query', 'Executing query...')}</Text>
+//         </Stack>
+//       </div>
+//     );
+//   }
 
-  if (!result) {
-    return null;
-  }
+//   if (!result) {
+//     return null;
+//   }
 
-  return (
-    <div className={styles.toolResult}>
-      <Alert title={t('ai-assistant.tool.query-results.title', 'Query Results')} severity="success">
-        <Stack direction="column" gap={1}>
-          <Text variant="body">
-            {t('ai-assistant.tool.query-results.found-data-points', 'Found {{count}} data points', {
-              count: result.length,
-            })}
-          </Text>
-          <Button variant="secondary" size="sm" onClick={() => setShowRawData(!showRawData)}>
-            {showRawData
-              ? t('ai-assistant.tool.query-results.hide-raw-data', 'Hide')
-              : t('ai-assistant.tool.query-results.show-raw-data', 'Show')}{' '}
-            {t('ai-assistant.tool.query-results.raw-data-label', 'Raw Data')}
-          </Button>
-          {showRawData && (
-            <CodeEditor value={JSON.stringify(result, null, 2)} language="json" height="200px" readOnly />
-          )}
-        </Stack>
-      </Alert>
-    </div>
-  );
-};
+//   return (
+//     <div className={styles.toolResult}>
+//       <Alert title={t('ai-assistant.tool.query-results.title', 'Query Results')} severity="success">
+//         <Stack direction="column" gap={1}>
+//           <Text variant="body">
+//             {t('ai-assistant.tool.query-results.found-data-points', 'Found {{count}} data points', {
+//               count: result.length,
+//             })}
+//           </Text>
+//           <Button variant="secondary" size="sm" onClick={() => setShowRawData(!showRawData)}>
+//             {showRawData
+//               ? t('ai-assistant.tool.query-results.hide-raw-data', 'Hide')
+//               : t('ai-assistant.tool.query-results.show-raw-data', 'Show')}{' '}
+//             {t('ai-assistant.tool.query-results.raw-data-label', 'Raw Data')}
+//           </Button>
+//           {showRawData && (
+//             <CodeEditor value={JSON.stringify(result, null, 2)} language="json" height="200px" readOnly />
+//           )}
+//         </Stack>
+//       </Alert>
+//     </div>
+//   );
+// };
 
-/**
- * Navigation Tool Component
- *
- * Displays navigation actions.
- */
-const NavigationTool: React.FC<{ args: { url: string }; isLoading: boolean }> = ({ args, isLoading }) => {
-  const styles = useStyles2(getStyles);
+// /**
+//  * Navigation Tool Component
+//  *
+//  * Displays navigation actions.
+//  */
+// const NavigationTool: React.FC<{ args: { url: string }; isLoading: boolean }> = ({ args, isLoading }) => {
+//   const styles = useStyles2(getStyles);
 
-  if (isLoading) {
-    return (
-      <div className={styles.toolResult}>
-        <Stack alignItems="center" gap={1}>
-          <Spinner size="sm" />
-          <Text variant="bodySmall">{t('ai-assistant.tool.navigating', 'Navigating...')}</Text>
-        </Stack>
-      </div>
-    );
-  }
+//   if (isLoading) {
+//     return (
+//       <div className={styles.toolResult}>
+//         <Stack alignItems="center" gap={1}>
+//           <Spinner size="sm" />
+//           <Text variant="bodySmall">{t('ai-assistant.tool.navigating', 'Navigating...')}</Text>
+//         </Stack>
+//       </div>
+//     );
+//   }
 
-  return (
-    <div className={styles.toolResult}>
-      <Alert title={t('ai-assistant.tool.navigation.title', 'Navigation')} severity="info">
-        <Text variant="body">
-          {t('ai-assistant.tool.navigation.navigated-to', 'Navigated to')}: {args.url}
-        </Text>
-      </Alert>
-    </div>
-  );
-};
+//   return (
+//     <div className={styles.toolResult}>
+//       <Alert title={t('ai-assistant.tool.navigation.title', 'Navigation')} severity="info">
+//         <Text variant="body">
+//           {t('ai-assistant.tool.navigation.navigated-to', 'Navigated to')}: {args.url}
+//         </Text>
+//       </Alert>
+//     </div>
+//   );
+// };
 
 /**
  * Assistant Action Bar Component

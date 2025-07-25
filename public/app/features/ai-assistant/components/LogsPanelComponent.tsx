@@ -14,7 +14,6 @@ import { useStyles2 } from '@grafana/ui';
 import { SceneDataNode, VizConfigBuilders } from '@grafana/scenes';
 import { SceneContextProvider, VizGridLayout, VizPanel } from '@grafana/scenes-react';
 import { LogData } from '../types/aiAssistant';
-import { PanelStateDisplay } from './PanelStateDisplay';
 
 interface LogsPanelComponentProps {
   /**
@@ -129,25 +128,15 @@ const LogsPanelContent: React.FC<{
     .build();
 
   return (
-    <PanelStateDisplay
-      isLoading={isLoading}
-      error={error}
-      isEmpty={!data || (Array.isArray(data) && data.length === 0)}
-      data={data}
-      height={height}
-      loadingMessage="Please wait while we fetch the log data."
-      emptyMessage="No log data available to display."
-    >
-      <div className={styles.container} style={{ height: 300 }}>
-        <AutoSizer>
-          {({ height: autoHeight, width }) => (
-            <VizGridLayout minHeight={autoHeight} minWidth={width}>
-              <VizPanel title={title} viz={logsViz} dataProvider={dataProvider} />
-            </VizGridLayout>
-          )}
-        </AutoSizer>
-      </div>
-    </PanelStateDisplay>
+    <div className={styles.container} style={{ height: 300 }}>
+      <AutoSizer>
+        {({ height: autoHeight, width }) => (
+          <VizGridLayout minHeight={autoHeight} minWidth={width}>
+            <VizPanel title={title} viz={logsViz} dataProvider={dataProvider} />
+          </VizGridLayout>
+        )}
+      </AutoSizer>
+    </div>
   );
 };
 

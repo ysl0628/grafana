@@ -2,8 +2,8 @@ import React from 'react';
 import { type ToolCallContentPartComponent } from '@assistant-ui/react';
 import { LogsPanelComponent, createLogsFromToolResult } from '../LogsPanelComponent';
 import { LogData } from '../../types/aiAssistant';
-import { ToolLayoutWrapper } from './ToolLayoutWrapper';
 import { QueryToolFallback } from './QueryToolFallback';
+import { PanelToolWrapper } from './PanelToolWrapper';
 import { createStatFromToolResult } from '../StatPanelComponent';
 
 /**
@@ -22,28 +22,29 @@ export const LokiToolFallback: ToolCallContentPartComponent = ({ toolName, args,
     <div>
       <QueryToolFallback toolName={toolName} args={args} result={result} status={status} />
       {toolName === 'query_loki_logs' && result && status?.type === 'complete' ? (
-        <ToolLayoutWrapper
+        <PanelToolWrapper
           toolName={isLog ? 'Logs Panel' : 'Stat Panel'}
-          status={status}
+          initialStatus={status}
           completeIcon="chart-line"
           showStatus={false}
+          isEmpty={!data || (Array.isArray(data) && data.length === 0)}
+          data={data}
+          error={isError ? new Error(result) : null}
         >
-          <div>
-            {isLog
-              ? createLogsFromToolResult({
-                  data,
-                  query: args.logql,
-                  datasourceUid: args.datasourceUid,
-                  error: isError ? result : undefined,
-                })
-              : createStatFromToolResult({
-                  data,
-                  query: args.logql,
-                  datasourceUid: args.datasourceUid,
-                  error: isError ? result : undefined,
-                })}
-          </div>
-        </ToolLayoutWrapper>
+          {isLog
+            ? createLogsFromToolResult({
+                data,
+                query: args.logql,
+                datasourceUid: args.datasourceUid,
+                error: isError ? result : undefined,
+              })
+            : createStatFromToolResult({
+                data,
+                query: args.logql,
+                datasourceUid: args.datasourceUid,
+                error: isError ? result : undefined,
+              })}
+        </PanelToolWrapper>
       ) : (
         <></>
       )}

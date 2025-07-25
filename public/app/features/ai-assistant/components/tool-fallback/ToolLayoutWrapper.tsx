@@ -8,7 +8,7 @@ import { useStyles2, Icon, Button, Text, Badge } from '@grafana/ui';
 interface ToolLayoutWrapperProps {
   toolName: string;
   status?: {
-    type: 'running' | 'complete' | 'incomplete' | 'requires-action';
+    type: 'running' | 'complete' | 'incomplete' | 'requires-action' | 'error' | 'warning';
     reason?: string;
   } | null;
   children: ReactNode;
@@ -61,6 +61,10 @@ export const ToolLayoutWrapper: React.FC<ToolLayoutWrapperProps> = ({
         icon: 'times',
         statusText: null,
       },
+      warning: {
+        icon: 'exclamation-triangle',
+        statusText: null,
+      },
       default: {
         icon: 'cog',
         statusText: null,
@@ -85,6 +89,14 @@ export const ToolLayoutWrapper: React.FC<ToolLayoutWrapperProps> = ({
 
       if (status?.type === 'requires-action') {
         return 'incomplete';
+      }
+
+      if (status?.type === 'error') {
+        return 'error';
+      }
+
+      if (status?.type === 'warning') {
+        return 'warning';
       }
 
       return 'default';

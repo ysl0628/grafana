@@ -6,7 +6,6 @@ import { useStyles2 } from '@grafana/ui';
 import { SceneDataNode, VizConfigBuilders } from '@grafana/scenes';
 import { SceneContextProvider, VizGridLayout, VizPanel } from '@grafana/scenes-react';
 import { LogData } from '../types/aiAssistant';
-import { PanelStateDisplay } from './PanelStateDisplay';
 
 interface StatPanelComponentProps {
   /**
@@ -60,11 +59,11 @@ export const StatPanelComponent: React.FC<StatPanelComponentProps> = ({
   isLoading = false,
   error = null,
 }) => {
-  const { title = 'Logs', height = 250 } = options;
+  const { title = 'Logs' } = options;
 
   return (
     <SceneContextProvider>
-      <StatPanelContent data={data} title={title} height={height} isLoading={isLoading} error={error} />
+      <StatPanelContent data={data} title={title} isLoading={isLoading} error={error} />
     </SceneContextProvider>
   );
 };
@@ -75,73 +74,58 @@ export const StatPanelComponent: React.FC<StatPanelComponentProps> = ({
 const StatPanelContent: React.FC<{
   data: Array<LogData>;
   title: string;
-  height: number;
   isLoading: boolean;
   error: Error | null;
-}> = ({ data, title, height, isLoading, error }) => {
+}> = ({ data, title, isLoading, error }) => {
   const styles = useStyles2(getStyles);
 
+  const fields = [
+    {
+      name: 'Time',
+      type: FieldType.time,
+      values: data?.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
+    },
+    {
+      name: 'Value',
+      type: FieldType.number,
+      values: data?.map((log) => log?.line ?? 0),
+    },
+  ];
+
+  const dataProvider = new SceneDataNode({
+    data: {
+      series: [toDataFrame({ fields })],
+      state: isLoading ? LoadingState.Loading : error ? LoadingState.Error : LoadingState.Done,
+      timeRange: makeTimeRange('now-1h', 'now'),
+    },
+  });
+
+  // Configure logs visualization
+  const statViz = VizConfigBuilders.stat()
+    .setOption('reduceOptions', {
+      values: false,
+      fields: '',
+      calcs: ['lastNotNull'],
+    })
+    .setThresholds({
+      mode: ThresholdsMode.Absolute,
+      steps: [
+        { value: 0, color: 'green' },
+        { value: 100, color: 'red' },
+      ],
+    })
+    .build();
+
   return (
-    <PanelStateDisplay
-      isLoading={isLoading}
-      error={error}
-      isEmpty={!data || (Array.isArray(data) && data.length === 0)}
-      data={data}
-      height={250}
-      loadingMessage="Please wait while we fetch the data."
-      emptyMessage="No data available to display."
-    >
-      {(() => {
-        const fields = [
-          {
-            name: 'Time',
-            type: FieldType.time,
-            values: data?.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
-          },
-          {
-            name: 'Value',
-            type: FieldType.number,
-            values: data?.map((log) => log?.line ?? 0),
-          },
-        ];
-
-        const dataProvider = new SceneDataNode({
-          data: {
-            series: [toDataFrame({ fields })],
-            state: isLoading ? LoadingState.Loading : error ? LoadingState.Error : LoadingState.Done,
-            timeRange: makeTimeRange('now-1h', 'now'),
-          },
-        });
-
-        // Configure logs visualization
-        const statViz = VizConfigBuilders.stat()
-          .setOption('reduceOptions', {
-            values: false,
-            fields: '',
-            calcs: ['lastNotNull'],
-          })
-          .setThresholds({
-            mode: ThresholdsMode.Absolute,
-            steps: [
-              { value: 0, color: 'green' },
-              { value: 100, color: 'red' },
-            ],
-          })
-          .build();
-
-        return (
-          <div className={styles.container}>
-            <AutoSizer>
-              {({ height: autoHeight, width }) => (
-                <VizGridLayout minHeight={autoHeight} minWidth={width}>
-                  <VizPanel title={title} viz={statViz} dataProvider={dataProvider} />
-                </VizGridLayout>
-              )}
-            </AutoSizer>
-          </div>
-        );
-      })()}
-    </PanelStateDisplay>
+    <div className={styles.container}>
+      <AutoSizer>
+        {({ height: autoHeight, width }) => (
+          <VizGridLayout minHeight={autoHeight} minWidth={width}>
+            <VizPanel title={title} viz={statViz} dataProvider={dataProvider} />
+          </VizGridLayout>
+        )}
+      </AutoSizer>
+    </div>
   );
 };
 

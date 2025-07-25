@@ -1,6 +1,6 @@
 import { type ToolCallContentPartComponent } from '@assistant-ui/react';
-import { ToolLayoutWrapper } from './ToolLayoutWrapper';
 import { QueryToolFallback } from './QueryToolFallback';
+import { PanelToolWrapper } from './PanelToolWrapper';
 import { createStatFromToolResult } from '../StatPanelComponent';
 
 /**
@@ -20,16 +20,22 @@ export const PrometheusToolFallback: ToolCallContentPartComponent = ({ toolName,
     <div>
       <QueryToolFallback toolName={toolName} args={args} result={result} status={status} />
       {toolName === 'query_prometheus' && result && status?.type === 'complete' ? (
-        <ToolLayoutWrapper toolName={'Stat Panel'} status={status} completeIcon="chart-line" showStatus={false}>
-          <div>
-            {createStatFromToolResult({
-              data,
-              query: args.expr || args.logql,
-              datasourceUid: args.datasourceUid,
-              error: panelError || isError ? result : undefined,
-            })}
-          </div>
-        </ToolLayoutWrapper>
+        <PanelToolWrapper
+          toolName={'Stat Panel'}
+          initialStatus={status}
+          completeIcon="chart-line"
+          showStatus={false}
+          isEmpty={!data || (Array.isArray(data) && data.length === 0)}
+          data={data}
+          error={panelError || isError ? new Error(result) : null}
+        >
+          {createStatFromToolResult({
+            data,
+            query: args.expr || args.logql,
+            datasourceUid: args.datasourceUid,
+            error: panelError || isError ? result : undefined,
+          })}
+        </PanelToolWrapper>
       ) : (
         <></>
       )}

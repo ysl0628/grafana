@@ -11,6 +11,7 @@ interface PanelStateDisplayProps {
   height?: number;
   emptyMessage?: string;
   loadingMessage?: string;
+  isNonArrayData?: boolean; // Passed from parent to avoid duplicate calculation
   children: React.ReactNode;
 }
 
@@ -28,12 +29,10 @@ export const PanelStateDisplay: React.FC<PanelStateDisplayProps> = ({
   height,
   emptyMessage = 'No data available to display.',
   loadingMessage = 'Please wait while we fetch the data.',
+  isNonArrayData = false,
   children,
 }) => {
   const styles = useStyles2(getStyles);
-
-  // Check if data is non-array (object, string, number, etc.) and should be displayed directly
-  const isNonArrayData = data !== undefined && data !== null && !Array.isArray(data);
 
   // Helper function to render non-array data
   const renderNonArrayData = (data: any) => {

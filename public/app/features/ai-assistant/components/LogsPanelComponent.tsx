@@ -14,8 +14,9 @@ import { useStyles2 } from '@grafana/ui';
 import { SceneDataNode, VizConfigBuilders } from '@grafana/scenes';
 import { SceneContextProvider, VizGridLayout, VizPanel } from '@grafana/scenes-react';
 import { LogData } from '../types/aiAssistant';
+import { PanelStateDisplay } from './PanelStateDisplay';
 
-interface DirectDataLogsPanelComponentProps {
+interface LogsPanelComponentProps {
   /**
    * Log data frames - the actual log data you already have
    */
@@ -61,7 +62,7 @@ interface DirectDataLogsPanelComponentProps {
  * - Auto-sizing support
  * - Loading and error states
  */
-export const DirectDataLogsPanelComponent: React.FC<DirectDataLogsPanelComponentProps> = ({
+export const LogsPanelComponent: React.FC<LogsPanelComponentProps> = ({
   data,
   options = {},
   isLoading = false,
@@ -71,7 +72,7 @@ export const DirectDataLogsPanelComponent: React.FC<DirectDataLogsPanelComponent
 
   return (
     <SceneContextProvider>
-      <DirectLogsPanelContent data={data} title={title} height={height} isLoading={isLoading} error={error} />
+      <LogsPanelContent data={data} title={title} height={height} isLoading={isLoading} error={error} />
     </SceneContextProvider>
   );
 };
@@ -79,7 +80,7 @@ export const DirectDataLogsPanelComponent: React.FC<DirectDataLogsPanelComponent
 /**
  * Internal component that uses scenes-react hooks
  */
-const DirectLogsPanelContent: React.FC<{
+const LogsPanelContent: React.FC<{
   data: Array<LogData>;
   title: string;
   height: number;
@@ -127,65 +128,42 @@ const DirectLogsPanelContent: React.FC<{
     .setOption('dedupStrategy', LogsDedupStrategy.none)
     .build();
 
-  if (error) {
-    return (
-      <div className={styles.errorContainer} style={{ height }}>
-        <div className={styles.errorMessage}>
-          <h4>❌ Error Loading Logs</h4>
-          <p>{error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer} style={{ height }}>
-        <div className={styles.loadingMessage}>
-          <h4>⏳ Loading Logs...</h4>
-          <p>Please wait while we fetch the log data.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <div className={styles.emptyContainer} style={{ height }}>
-        <div className={styles.emptyMessage}>
-          <h4>📝 No Logs Found</h4>
-          <p>No log data available to display.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={styles.container} style={{ height: 300 }}>
-      <AutoSizer>
-        {({ height: autoHeight, width }) => (
-          <VizGridLayout minHeight={autoHeight} minWidth={width}>
-            <VizPanel title={title} viz={logsViz} dataProvider={dataProvider} />
-          </VizGridLayout>
-        )}
-      </AutoSizer>
-    </div>
+    <PanelStateDisplay
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || (Array.isArray(data) && data.length === 0)}
+      data={data}
+      height={height}
+      loadingMessage="Please wait while we fetch the log data."
+      emptyMessage="No log data available to display."
+    >
+      <div className={styles.container} style={{ height: 300 }}>
+        <AutoSizer>
+          {({ height: autoHeight, width }) => (
+            <VizGridLayout minHeight={autoHeight} minWidth={width}>
+              <VizPanel title={title} viz={logsViz} dataProvider={dataProvider} />
+            </VizGridLayout>
+          )}
+        </AutoSizer>
+      </div>
+    </PanelStateDisplay>
   );
 };
 
 /**
  * Utility function to create a direct data logs panel
  */
-export const createDirectDataLogsPanel = (config: {
+export const createLogsPanel = (config: {
   data: Array<LogData>;
   title?: string;
   height?: number;
   isLoading?: boolean;
   error?: Error | null;
-  options?: DirectDataLogsPanelComponentProps['options'];
+  options?: LogsPanelComponentProps['options'];
 }) => {
   return (
-    <DirectDataLogsPanelComponent
+    <LogsPanelComponent
       data={config.data}
       options={{
         title: config.title || 'Logs',
@@ -210,7 +188,7 @@ export const createLogsFromToolResult = (toolResult: {
 }) => {
   const error = toolResult.error ? new Error(toolResult.error) : null;
 
-  return createDirectDataLogsPanel({
+  return createLogsPanel({
     data: toolResult.data || [],
     title: toolResult.query ? `Query: ${toolResult.query}` : 'Logs',
     isLoading: toolResult.isLoading || false,
@@ -227,7 +205,7 @@ export const DirectDataLogsPanelPresets = {
    * Error logs display
    */
   ErrorLogs: (data: Array<LogData>, appName?: string) =>
-    createDirectDataLogsPanel({
+    createLogsPanel({
       data,
       title: appName ? `${appName} - Error Logs` : 'Error Logs',
       height: 350,
@@ -238,7 +216,7 @@ export const DirectDataLogsPanelPresets = {
    * Recent activity logs
    */
   RecentActivity: (data: Array<LogData>, serviceName?: string) =>
-    createDirectDataLogsPanel({
+    createLogsPanel({
       data,
       title: serviceName ? `${serviceName} - Recent Activity` : 'Recent Activity',
       height: 400,
@@ -249,7 +227,7 @@ export const DirectDataLogsPanelPresets = {
    * Debug logs with full details
    */
   DebugLogs: (data: Array<LogData>) =>
-    createDirectDataLogsPanel({
+    createLogsPanel({
       data,
       title: 'Debug Information',
       height: 500,
@@ -260,7 +238,7 @@ export const DirectDataLogsPanelPresets = {
    * Compact logs view
    */
   CompactView: (data: Array<LogData>) =>
-    createDirectDataLogsPanel({
+    createLogsPanel({
       data,
       title: 'Logs',
       height: 250,
@@ -297,92 +275,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
 
-  errorContainer: css({
-    width: '100%',
-    border: `1px solid ${theme.colors.error.border}`,
-    borderRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.error.transparent,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: theme.spacing(1, 0),
-  }),
-
-  errorMessage: css({
-    textAlign: 'center',
-    color: theme.colors.error.text,
-    padding: theme.spacing(2),
-
-    '& h4': {
-      margin: 0,
-      marginBottom: theme.spacing(1),
-      fontSize: theme.typography.h4.fontSize,
-    },
-
-    '& p': {
-      margin: 0,
-      fontSize: theme.typography.body.fontSize,
-      opacity: 0.8,
-    },
-  }),
-
-  loadingContainer: css({
-    width: '100%',
-    border: `1px solid ${theme.colors.border.medium}`,
-    borderRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.background.secondary,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: theme.spacing(1, 0),
-  }),
-
-  loadingMessage: css({
-    textAlign: 'center',
-    color: theme.colors.text.primary,
-    padding: theme.spacing(2),
-
-    '& h4': {
-      margin: 0,
-      marginBottom: theme.spacing(1),
-      fontSize: theme.typography.h4.fontSize,
-    },
-
-    '& p': {
-      margin: 0,
-      fontSize: theme.typography.body.fontSize,
-      opacity: 0.7,
-    },
-  }),
-
-  emptyContainer: css({
-    width: '100%',
-    border: `1px solid ${theme.colors.border.medium}`,
-    borderRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.background.secondary,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: theme.spacing(1, 0),
-  }),
-
-  emptyMessage: css({
-    textAlign: 'center',
-    color: theme.colors.text.secondary,
-    padding: theme.spacing(2),
-
-    '& h4': {
-      margin: 0,
-      marginBottom: theme.spacing(1),
-      fontSize: theme.typography.h4.fontSize,
-    },
-
-    '& p': {
-      margin: 0,
-      fontSize: theme.typography.body.fontSize,
-      opacity: 0.7,
-    },
-  }),
 });
 
-export default DirectDataLogsPanelComponent;
+export default LogsPanelComponent;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { type ToolCallContentPartComponent } from '@assistant-ui/react';
-import { DirectDataLogsPanelComponent, createLogsFromToolResult } from '../DirectDataLogsPanelComponent';
+import { LogsPanelComponent, createLogsFromToolResult } from '../LogsPanelComponent';
 import { LogData } from '../../types/aiAssistant';
 import { ToolLayoutWrapper } from './ToolLayoutWrapper';
 import { QueryToolFallback } from './QueryToolFallback';
@@ -110,7 +110,7 @@ export const InteractiveLogExplorer: React.FC<{
         </div>
       )}
 
-      <DirectDataLogsPanelComponent
+      <LogsPanelComponent
         data={currentData}
         options={{
           title: 'Log Explorer',

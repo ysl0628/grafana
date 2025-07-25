@@ -16,15 +16,10 @@ interface QueryToolFallbackProps {
 
 /**
  * Shared Query Tool Fallback Component
- * 
+ *
  * Displays query parameters and results in a consistent format for all query tools.
  */
-export const QueryToolFallback: React.FC<QueryToolFallbackProps> = ({
-  toolName,
-  args,
-  result,
-  status
-}) => {
+export const QueryToolFallback: React.FC<QueryToolFallbackProps> = ({ toolName, args, result, status }) => {
   const styles = useStyles2(getStyles);
 
   return (
@@ -37,7 +32,7 @@ export const QueryToolFallback: React.FC<QueryToolFallbackProps> = ({
                 <td>{key}:</td>
                 <td>
                   {key === 'query' || key === 'logql' || key === 'expr' ? (
-                    <code>{String(value)}</code>
+                    <code className={styles.queryCode}>{String(value)}</code>
                   ) : (
                     String(value)
                   )}
@@ -120,6 +115,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
       fontFamily: theme.typography.fontFamilyMonospace,
       color: theme.colors.text.primary,
     },
+  }),
+  queryCode: css({
+    wordBreak: 'break-word',
   }),
 });
 

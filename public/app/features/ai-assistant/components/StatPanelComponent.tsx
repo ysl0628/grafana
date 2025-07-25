@@ -6,6 +6,7 @@ import { useStyles2 } from '@grafana/ui';
 import { SceneDataNode, VizConfigBuilders } from '@grafana/scenes';
 import { SceneContextProvider, VizGridLayout, VizPanel } from '@grafana/scenes-react';
 import { LogData } from '../types/aiAssistant';
+import { PanelStateDisplay } from './PanelStateDisplay';
 
 interface StatPanelComponentProps {
   /**
@@ -80,77 +81,67 @@ const StatPanelContent: React.FC<{
 }> = ({ data, title, height, isLoading, error }) => {
   const styles = useStyles2(getStyles);
 
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <p className={styles.errorMessage}>{error.message}</p>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer} style={{ height }}>
-        <p className={styles.loadingMessage}>Please wait while we fetch the data.</p>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <div className={styles.emptyContainer} style={{ height }}>
-        <p className={styles.emptyMessage}>No data available to display.</p>
-      </div>
-    );
-  }
-
-  const fields = [
-    {
-      name: 'Time',
-      type: FieldType.time,
-      values: data?.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
-    },
-    {
-      name: 'Value',
-      type: FieldType.number,
-      values: data?.map((log) => log?.line ?? 0),
-    },
-  ];
-
-  const dataProvider = new SceneDataNode({
-    data: {
-      series: [toDataFrame({ fields })],
-      state: isLoading ? LoadingState.Loading : error ? LoadingState.Error : LoadingState.Done,
-      timeRange: makeTimeRange('now-1h', 'now'),
-    },
-  });
-
-  // Configure logs visualization
-  const statViz = VizConfigBuilders.stat()
-    .setOption('reduceOptions', {
-      values: false,
-      fields: '',
-      calcs: ['lastNotNull'],
-    })
-    .setThresholds({
-      mode: ThresholdsMode.Absolute,
-      steps: [
-        { value: 0, color: 'green' },
-        { value: 100, color: 'red' },
-      ],
-    })
-    .build();
-
   return (
-    <div className={styles.container} style={{ height: 300 }}>
-      <AutoSizer>
-        {({ height: autoHeight, width }) => (
-          <VizGridLayout minHeight={autoHeight} minWidth={width}>
-            <VizPanel title={title} viz={statViz} dataProvider={dataProvider} />
-          </VizGridLayout>
-        )}
-      </AutoSizer>
-    </div>
+    <PanelStateDisplay
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || (Array.isArray(data) && data.length === 0)}
+      data={data}
+      height={250}
+      loadingMessage="Please wait while we fetch the data."
+      emptyMessage="No data available to display."
+    >
+      {(() => {
+        const fields = [
+          {
+            name: 'Time',
+            type: FieldType.time,
+            values: data?.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
+          },
+          {
+            name: 'Value',
+            type: FieldType.number,
+            values: data?.map((log) => log?.line ?? 0),
+          },
+        ];
+
+        const dataProvider = new SceneDataNode({
+          data: {
+            series: [toDataFrame({ fields })],
+            state: isLoading ? LoadingState.Loading : error ? LoadingState.Error : LoadingState.Done,
+            timeRange: makeTimeRange('now-1h', 'now'),
+          },
+        });
+
+        // Configure logs visualization
+        const statViz = VizConfigBuilders.stat()
+          .setOption('reduceOptions', {
+            values: false,
+            fields: '',
+            calcs: ['lastNotNull'],
+          })
+          .setThresholds({
+            mode: ThresholdsMode.Absolute,
+            steps: [
+              { value: 0, color: 'green' },
+              { value: 100, color: 'red' },
+            ],
+          })
+          .build();
+
+        return (
+          <div className={styles.container}>
+            <AutoSizer>
+              {({ height: autoHeight, width }) => (
+                <VizGridLayout minHeight={autoHeight} minWidth={width}>
+                  <VizPanel title={title} viz={statViz} dataProvider={dataProvider} />
+                </VizGridLayout>
+              )}
+            </AutoSizer>
+          </div>
+        );
+      })()}
+    </PanelStateDisplay>
   );
 };
 
@@ -276,64 +267,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       height: '100%',
       border: 'none',
     },
-  }),
-
-  errorContainer: css({
-    borderLeft: `3px solid ${theme.colors.warning.main}`,
-    backgroundColor: `${theme.colors.background.secondary}`,
-    padding: theme.spacing(2),
-    minWidth: '350px',
-    borderRadius: theme.shape.radius.default,
-    marginBottom: theme.spacing(4),
-  }),
-
-  errorMessage: css({
-    textAlign: 'start',
-    color: theme.colors.warning.main,
-    fontSize: theme.typography.body.fontSize,
-    margin: 0,
-  }),
-
-  loadingContainer: css({
-    width: '100%',
-    borderLeft: `3px solid ${theme.colors.info.main}`,
-    backgroundColor: `${theme.colors.background.secondary}`,
-    padding: theme.spacing(2),
-    minWidth: '350px',
-    borderRadius: theme.shape.radius.default,
-    marginBottom: theme.spacing(4),
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: theme.spacing(1, 0),
-  }),
-
-  loadingMessage: css({
-    textAlign: 'center',
-    color: theme.colors.info.main,
-    fontSize: theme.typography.body.fontSize,
-    margin: 0,
-  }),
-
-  emptyContainer: css({
-    width: '100%',
-    borderLeft: `3px solid ${theme.colors.info.main}`,
-    backgroundColor: `${theme.colors.background.secondary}`,
-    padding: theme.spacing(2),
-    minWidth: '350px',
-    borderRadius: theme.shape.radius.default,
-    marginBottom: theme.spacing(4),
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: theme.spacing(1, 0),
-  }),
-
-  emptyMessage: css({
-    textAlign: 'center',
-    color: theme.colors.text.secondary,
-    fontSize: theme.typography.body.fontSize,
-    margin: 0,
   }),
 });
 

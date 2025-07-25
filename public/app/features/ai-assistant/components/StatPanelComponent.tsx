@@ -80,16 +80,40 @@ const StatPanelContent: React.FC<{
 }> = ({ data, title, height, isLoading, error }) => {
   const styles = useStyles2(getStyles);
 
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.errorMessage}>{error.message}</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer} style={{ height }}>
+        <p className={styles.loadingMessage}>Please wait while we fetch the data.</p>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className={styles.emptyContainer} style={{ height }}>
+        <p className={styles.emptyMessage}>No data available to display.</p>
+      </div>
+    );
+  }
+
   const fields = [
     {
       name: 'Time',
       type: FieldType.time,
-      values: data.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
+      values: data?.map((log) => Number(JSON.parse(log.timestamp)) / 1_000_000),
     },
     {
       name: 'Value',
       type: FieldType.number,
-      values: data.map((log) => log.line),
+      values: data?.map((log) => log?.line ?? 0),
     },
   ];
 
@@ -116,39 +140,6 @@ const StatPanelContent: React.FC<{
       ],
     })
     .build();
-
-  if (error) {
-    return (
-      <div className={styles.errorContainer} style={{ height }}>
-        <div className={styles.errorMessage}>
-          <h4>❌ Error Loading Logs</h4>
-          <p>{error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer} style={{ height }}>
-        <div className={styles.loadingMessage}>
-          <h4>⏳ Loading Logs...</h4>
-          <p>Please wait while we fetch the log data.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <div className={styles.emptyContainer} style={{ height }}>
-        <div className={styles.emptyMessage}>
-          <h4>📝 No Logs Found</h4>
-          <p>No log data available to display.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.container} style={{ height: 300 }}>
@@ -212,7 +203,7 @@ export const createStatFromToolResult = (toolResult: {
 /**
  * Pre-configured components for different scenarios
  */
-export const DirectDataLogsPanelPresets = {
+export const StatPanelPresets = {
   /**
    * Error logs display
    */
@@ -288,39 +279,28 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 
   errorContainer: css({
-    width: '100%',
-    border: `1px solid ${theme.colors.error.border}`,
+    borderLeft: `3px solid ${theme.colors.warning.main}`,
+    backgroundColor: `${theme.colors.background.secondary}`,
+    padding: theme.spacing(2),
+    minWidth: '350px',
     borderRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.error.transparent,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: theme.spacing(1, 0),
+    marginBottom: theme.spacing(4),
   }),
 
   errorMessage: css({
-    textAlign: 'center',
-    color: theme.colors.error.text,
-    padding: theme.spacing(2),
-
-    '& h4': {
-      margin: 0,
-      marginBottom: theme.spacing(1),
-      fontSize: theme.typography.h4.fontSize,
-    },
-
-    '& p': {
-      margin: 0,
-      fontSize: theme.typography.body.fontSize,
-      opacity: 0.8,
-    },
+    textAlign: 'start',
+    color: theme.colors.warning.main,
+    fontSize: theme.typography.body.fontSize,
   }),
 
   loadingContainer: css({
     width: '100%',
-    border: `1px solid ${theme.colors.border.medium}`,
+    borderLeft: `3px solid ${theme.colors.info.main}`,
+    backgroundColor: `${theme.colors.background.secondary}`,
+    padding: theme.spacing(2),
+    minWidth: '350px',
     borderRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.background.secondary,
+    marginBottom: theme.spacing(4),
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -329,27 +309,18 @@ const getStyles = (theme: GrafanaTheme2) => ({
 
   loadingMessage: css({
     textAlign: 'center',
-    color: theme.colors.text.primary,
-    padding: theme.spacing(2),
-
-    '& h4': {
-      margin: 0,
-      marginBottom: theme.spacing(1),
-      fontSize: theme.typography.h4.fontSize,
-    },
-
-    '& p': {
-      margin: 0,
-      fontSize: theme.typography.body.fontSize,
-      opacity: 0.7,
-    },
+    color: theme.colors.info.main,
+    fontSize: theme.typography.body.fontSize,
   }),
 
   emptyContainer: css({
     width: '100%',
-    border: `1px solid ${theme.colors.border.medium}`,
+    borderLeft: `3px solid ${theme.colors.info.main}`,
+    backgroundColor: `${theme.colors.background.secondary}`,
+    padding: theme.spacing(2),
+    minWidth: '350px',
     borderRadius: theme.shape.radius.default,
-    backgroundColor: theme.colors.background.secondary,
+    marginBottom: theme.spacing(4),
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -359,19 +330,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   emptyMessage: css({
     textAlign: 'center',
     color: theme.colors.text.secondary,
-    padding: theme.spacing(2),
-
-    '& h4': {
-      margin: 0,
-      marginBottom: theme.spacing(1),
-      fontSize: theme.typography.h4.fontSize,
-    },
-
-    '& p': {
-      margin: 0,
-      fontSize: theme.typography.body.fontSize,
-      opacity: 0.7,
-    },
+    fontSize: theme.typography.body.fontSize,
   }),
 });
 

@@ -19,7 +19,7 @@ import React, { useState, FC } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { useStyles2, Button, Text, Tooltip, Alert } from '@grafana/ui';
-import { ToolFallback, LokiToolFallback } from './tool-fallback';
+import { ToolFallback, LokiToolFallback, PrometheusToolFallback } from './tool-fallback';
 
 /**
  * AI Assistant Message Component
@@ -41,6 +41,7 @@ export const AiAssistantMessage: React.FC = () => {
               Fallback: ToolFallback,
               by_name: {
                 query_loki_logs: LokiToolFallback,
+                query_prometheus: PrometheusToolFallback,
               },
               // by_name: {
               //   getDashboardInfo: DashboardInfoTool,

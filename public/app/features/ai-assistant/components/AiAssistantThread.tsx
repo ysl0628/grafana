@@ -15,8 +15,8 @@ import { t } from '@grafana/i18n';
 import { useStyles2, Icon, Button, Stack, Text, Tooltip, TextArea, LoadingBar } from '@grafana/ui';
 
 import { AiAssistantMessage } from './AiAssistantMessage';
-import { AtMenu } from './AtMenu';
-import { SelectedItems } from './SelectedItems';
+import { AtMenu } from './user-context/AtMenu';
+import { SelectedItems } from './user-context/SelectedItems';
 import { AtSelectionItem } from '../contexts/AtSelectionContext';
 
 /**

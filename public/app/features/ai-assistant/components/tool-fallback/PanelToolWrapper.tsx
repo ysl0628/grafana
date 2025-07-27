@@ -1,6 +1,6 @@
 import React from 'react';
 import { ToolLayoutWrapper } from './ToolLayoutWrapper';
-import { PanelStateDisplay } from '../PanelStateDisplay';
+import { PanelStateDisplay } from '../panel/PanelStateDisplay';
 
 interface PanelToolWrapperProps {
   toolName: string;

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { t } from '@grafana/i18n';
 import { Dropdown, Menu } from '@grafana/ui';
 
-import { useAtSelection, AtSelectionItem, DashboardItem } from '../contexts/AtSelectionContext';
+import { useAtSelection, AtSelectionItem, DashboardItem } from '../../contexts/AtSelectionContext';
 import { getBackendSrv } from '@grafana/runtime';
 
 interface AtMenuProps {

@@ -29,7 +29,6 @@ import { ToolFallback, LokiToolFallback, PrometheusToolFallback } from './tool-f
  */
 export const AiAssistantMessage: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const message = useMessage();
 
   return (
     <MessagePrimitive.Root className={styles.assistantMessage}>
@@ -43,14 +42,6 @@ export const AiAssistantMessage: React.FC = () => {
                 query_loki_logs: LokiToolFallback,
                 query_prometheus: PrometheusToolFallback,
               },
-              // by_name: {
-              //   getDashboardInfo: DashboardInfoTool,
-              //   queryData: QueryDataTool,
-              //   navigateToUrl: NavigationTool,
-              // },
-              //  getDashboardInfo: DashboardInfoTool,
-              // queryData: QueryDataTool,
-              // navigateToUrl: NavigationTool,
             },
           }}
         />
@@ -81,134 +72,6 @@ const MarkdownText: React.FC = () => {
 };
 
 /**
- * Dashboard Info Tool Component
- *
- * Displays results from dashboard information queries.
- */
-// const DashboardInfoTool: React.FC<{ result: any; isLoading: boolean }> = ({ result, isLoading }) => {
-//   const styles = useStyles2(getStyles);
-
-//   if (isLoading) {
-//     return (
-//       <div className={styles.toolResult}>
-//         <Stack alignItems="center" gap={1}>
-//           <Spinner size="sm" />
-//           <Text variant="bodySmall">
-//             {t('ai-assistant.tool.getting-dashboard-info', 'Getting dashboard information...')}
-//           </Text>
-//         </Stack>
-//       </div>
-//     );
-//   }
-
-//   if (!result) {
-//     return null;
-//   }
-
-//   return (
-//     <div className={styles.toolResult}>
-//       <Alert title={t('ai-assistant.tool.dashboard-info.title', 'Dashboard Information')} severity="info">
-//         <Stack direction="column" gap={1}>
-//           <Text variant="body">
-//             <strong>{t('ai-assistant.tool.dashboard-info.title-label', 'Title')}:</strong> {result.title}
-//           </Text>
-//           <Text variant="body">
-//             <strong>{t('ai-assistant.tool.dashboard-info.uid-label', 'UID')}:</strong> {result.uid}
-//           </Text>
-//           <Text variant="body">
-//             <strong>{t('ai-assistant.tool.dashboard-info.panels-label', 'Panels')}:</strong>{' '}
-//             {result.panels?.length || 0}
-//           </Text>
-//           {result.tags && result.tags.length > 0 && (
-//             <Text variant="body">
-//               <strong>{t('ai-assistant.tool.dashboard-info.tags-label', 'Tags')}:</strong> {result.tags.join(', ')}
-//             </Text>
-//           )}
-//         </Stack>
-//       </Alert>
-//     </div>
-//   );
-// };
-
-// /**
-//  * Query Data Tool Component
-//  *
-//  * Displays results from data queries.
-//  */
-// const QueryDataTool: React.FC<{ result: any; isLoading: boolean }> = ({ result, isLoading }) => {
-//   const styles = useStyles2(getStyles);
-//   const [showRawData, setShowRawData] = useState(false);
-
-//   if (isLoading) {
-//     return (
-//       <div className={styles.toolResult}>
-//         <Stack alignItems="center" gap={1}>
-//           <Spinner size="sm" />
-//           <Text variant="bodySmall">{t('ai-assistant.tool.executing-query', 'Executing query...')}</Text>
-//         </Stack>
-//       </div>
-//     );
-//   }
-
-//   if (!result) {
-//     return null;
-//   }
-
-//   return (
-//     <div className={styles.toolResult}>
-//       <Alert title={t('ai-assistant.tool.query-results.title', 'Query Results')} severity="success">
-//         <Stack direction="column" gap={1}>
-//           <Text variant="body">
-//             {t('ai-assistant.tool.query-results.found-data-points', 'Found {{count}} data points', {
-//               count: result.length,
-//             })}
-//           </Text>
-//           <Button variant="secondary" size="sm" onClick={() => setShowRawData(!showRawData)}>
-//             {showRawData
-//               ? t('ai-assistant.tool.query-results.hide-raw-data', 'Hide')
-//               : t('ai-assistant.tool.query-results.show-raw-data', 'Show')}{' '}
-//             {t('ai-assistant.tool.query-results.raw-data-label', 'Raw Data')}
-//           </Button>
-//           {showRawData && (
-//             <CodeEditor value={JSON.stringify(result, null, 2)} language="json" height="200px" readOnly />
-//           )}
-//         </Stack>
-//       </Alert>
-//     </div>
-//   );
-// };
-
-// /**
-//  * Navigation Tool Component
-//  *
-//  * Displays navigation actions.
-//  */
-// const NavigationTool: React.FC<{ args: { url: string }; isLoading: boolean }> = ({ args, isLoading }) => {
-//   const styles = useStyles2(getStyles);
-
-//   if (isLoading) {
-//     return (
-//       <div className={styles.toolResult}>
-//         <Stack alignItems="center" gap={1}>
-//           <Spinner size="sm" />
-//           <Text variant="bodySmall">{t('ai-assistant.tool.navigating', 'Navigating...')}</Text>
-//         </Stack>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className={styles.toolResult}>
-//       <Alert title={t('ai-assistant.tool.navigation.title', 'Navigation')} severity="info">
-//         <Text variant="body">
-//           {t('ai-assistant.tool.navigation.navigated-to', 'Navigated to')}: {args.url}
-//         </Text>
-//       </Alert>
-//     </div>
-//   );
-// };
-
-/**
  * Assistant Action Bar Component
  *
  * Provides actions for assistant messages like copy and regenerate.
@@ -217,7 +80,6 @@ const AssistantActionBar: React.FC = () => {
   const styles = useStyles2(getStyles);
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const message = useMessage();
-  // console.log(message);
 
   return (
     <ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className={styles.actionBar}>

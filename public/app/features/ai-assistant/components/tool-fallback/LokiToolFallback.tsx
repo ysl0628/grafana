@@ -1,10 +1,10 @@
 import React from 'react';
 import { type ToolCallContentPartComponent } from '@assistant-ui/react';
-import { LogsPanelComponent, createLogsFromToolResult } from '../LogsPanelComponent';
+import { LogsPanelComponent, createLogsFromToolResult } from '../panel/LogsPanelComponent';
 import { LogData } from '../../types/aiAssistant';
 import { QueryToolFallback } from './QueryToolFallback';
 import { PanelToolWrapper } from './PanelToolWrapper';
-import { createStatFromToolResult } from '../StatPanelComponent';
+import { createStatFromToolResult } from '../panel/StatPanelComponent';
 
 /**
  * Example implementations using DirectDataLogsPanelComponent

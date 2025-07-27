@@ -13,7 +13,7 @@ import {
 import { useStyles2 } from '@grafana/ui';
 import { SceneDataNode, VizConfigBuilders } from '@grafana/scenes';
 import { SceneContextProvider, VizGridLayout, VizPanel } from '@grafana/scenes-react';
-import { LogData } from '../types/aiAssistant';
+import { LogData } from '../../types/aiAssistant';
 
 interface LogsPanelComponentProps {
   /**
@@ -263,7 +263,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       border: 'none',
     },
   }),
-
 });
 
 export default LogsPanelComponent;

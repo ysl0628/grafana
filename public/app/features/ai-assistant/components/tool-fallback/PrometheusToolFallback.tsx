@@ -1,7 +1,7 @@
 import { type ToolCallContentPartComponent } from '@assistant-ui/react';
 import { QueryToolFallback } from './QueryToolFallback';
 import { PanelToolWrapper } from './PanelToolWrapper';
-import { createStatFromToolResult } from '../StatPanelComponent';
+import { createStatFromToolResult } from '../panel/StatPanelComponent';
 
 /**
  * Example implementations using DirectDataLogsPanelComponent

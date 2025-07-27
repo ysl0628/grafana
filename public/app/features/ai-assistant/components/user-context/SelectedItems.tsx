@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, Icon, Text, Tooltip } from '@grafana/ui';
 
-import { AtSelectionItem, useAtSelection } from '../contexts/AtSelectionContext';
+import { AtSelectionItem, useAtSelection } from '../../contexts/AtSelectionContext';
 
 export const SelectedItems: React.FC = () => {
   const styles = useStyles2(getStyles);

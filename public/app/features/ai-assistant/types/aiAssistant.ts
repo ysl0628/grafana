@@ -1,6 +1,7 @@
 import { ComponentType } from 'react';
 
 import { CurrentUserDTO, TimeRange } from '@grafana/data';
+import { AtSelectionItem } from '../contexts/AtSelectionContext';
 
 export interface DataQuery {
   refId: string;
@@ -55,6 +56,7 @@ export interface AiAssistantMessage {
   createdAt?: string;
   tools?: ToolCall[];
   context?: GrafanaContext;
+  userContext?: AtSelectionItem[]; // User context items when the message was sent
   // Tool message specific fields
   toolName?: string;
   toolCallId?: string;
@@ -76,7 +78,6 @@ export interface ThreadState {
   threadId: string;
   messages: AiAssistantMessage[];
   lastActivity: Date;
-  context: GrafanaContext;
   archived?: boolean;
   title?: string;
   metadata: {

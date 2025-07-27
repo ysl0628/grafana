@@ -1,15 +1,11 @@
+import { AtSelectionItem } from '../../../contexts/AtSelectionContext';
+
 // Simple type definition for ReadonlyJSONObject
 export type ReadonlyJSONObject = {
   readonly [key: string]: ReadonlyJSONValue;
 };
 
-export type ReadonlyJSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | ReadonlyJSONArray
-  | ReadonlyJSONObject;
+export type ReadonlyJSONValue = string | number | boolean | null | ReadonlyJSONArray | ReadonlyJSONObject;
 
 export type ReadonlyJSONArray = readonly ReadonlyJSONValue[];
 
@@ -28,84 +24,103 @@ export type LangChainToolCall = {
 };
 
 export type MessageContentText = {
-  type: "text" | "text_delta";
+  type: 'text' | 'text_delta';
   text: string;
 };
 
 export type MessageContentImageUrl = {
-  type: "image_url";
+  type: 'image_url';
   image_url: string | { url: string };
 };
 
 type MessageContentToolUse = {
-  type: "tool_use" | "input_json_delta";
+  type: 'tool_use' | 'input_json_delta';
 };
 
 export const LangGraphKnownEventTypes = {
-  Messages: "messages",
-  MessagesPartial: "messages/partial",
-  MessagesComplete: "messages/complete",
-  Metadata: "metadata",
-  Updates: "updates",
-  Info: "info",
-  Error: "error",
+  Messages: 'messages',
+  MessagesPartial: 'messages/partial',
+  MessagesComplete: 'messages/complete',
+  Metadata: 'metadata',
+  Updates: 'updates',
+  Info: 'info',
+  Error: 'error',
 } as const;
 
-export type LangGraphKnownEventTypes =
-  (typeof LangGraphKnownEventTypes)[keyof typeof LangGraphKnownEventTypes];
+export type LangGraphKnownEventTypes = (typeof LangGraphKnownEventTypes)[keyof typeof LangGraphKnownEventTypes];
 
 type CustomEventType = string;
 
 export type EventType = LangGraphKnownEventTypes | CustomEventType;
 
 type UserMessageContentComplex = MessageContentText | MessageContentImageUrl;
-type AssistantMessageContentComplex =
-  | MessageContentText
-  | MessageContentImageUrl
-  | MessageContentToolUse;
+type AssistantMessageContentComplex = MessageContentText | MessageContentImageUrl | MessageContentToolUse;
 
 type UserMessageContent = string | UserMessageContentComplex[];
 type AssistantMessageContent = string | AssistantMessageContentComplex[];
 
+// 定義所有 message type 共同的屬性
+export type LangGraphMessageBase = {
+  id?: string;
+  additional_kwargs?: {
+    metadata?: {
+      userContext?: AtSelectionItem[];
+    };
+  };
+  example?: boolean;
+  response_metadata?: {
+    finish_reason?: string;
+    model_name?: string;
+    service_tier?: string;
+    system_fingerprint?: string;
+  };
+};
+
+// 定義 AI 專屬的屬性
+export type LangGraphAIMessageExtras = {
+  invalid_tool_calls?: any[];
+  tool_calls?: LangChainToolCall[];
+  usage_metadata?: Record<string, any>;
+};
+
+// 基於 LangGraphMessageBase 重構 LangChainMessage
 export type LangChainMessage =
-  | {
-      id?: string;
-      type: "system";
+  | (LangGraphMessageBase & {
+      type: 'system';
       content: string;
-    }
-  | {
-      id?: string;
-      type: "human";
+    })
+  | (LangGraphMessageBase & {
+      type: 'human';
       content: UserMessageContent;
-    }
-  | {
-      id?: string;
-      type: "tool";
+      metadata?: {
+        userContext?: AtSelectionItem[];
+      };
+    })
+  | (LangGraphMessageBase & {
+      type: 'tool';
       content: string;
       tool_call_id: string;
       name: string;
       artifact?: any;
-      status: "success" | "error";
-    }
-  | {
-      id?: string;
-      type: "ai";
-      content: AssistantMessageContent;
-      tool_call_chunks?: LangChainToolCallChunk[];
-      tool_calls?: LangChainToolCall[];
-    };
+      status: 'success' | 'error';
+    })
+  | (LangGraphMessageBase &
+      LangGraphAIMessageExtras & {
+        type: 'ai';
+        content: AssistantMessageContent;
+        tool_call_chunks?: LangChainToolCallChunk[];
+        tool_calls?: LangChainToolCall[];
+      });
 
 export type LangChainMessageChunk = {
   id?: string | undefined;
-  type: "AIMessageChunk";
+  type: 'AIMessageChunk';
   content?: AssistantMessageContent | undefined;
   tool_call_chunks?: LangChainToolCallChunk[] | undefined;
 };
 
 export type LangChainEvent = {
-  event:
-    | typeof LangGraphKnownEventTypes.MessagesPartial
-    | typeof LangGraphKnownEventTypes.MessagesComplete;
+  event: typeof LangGraphKnownEventTypes.MessagesPartial | typeof LangGraphKnownEventTypes.MessagesComplete;
   data: LangChainMessage[];
 };
 
@@ -116,12 +131,7 @@ export type LangChainMessageTupleEvent = {
   data: [LangChainMessageChunk, LangGraphTupleMetadata];
 };
 
-export type OnMetadataEventCallback = (
-  metadata: unknown,
-) => void | Promise<void>;
+export type OnMetadataEventCallback = (metadata: unknown) => void | Promise<void>;
 export type OnInfoEventCallback = (info: unknown) => void | Promise<void>;
 export type OnErrorEventCallback = (error: unknown) => void | Promise<void>;
-export type OnCustomEventCallback = (
-  type: string,
-  data: unknown,
-) => void | Promise<void>;
+export type OnCustomEventCallback = (type: string, data: unknown) => void | Promise<void>;

@@ -210,10 +210,9 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
         await updateThreadTitle(threadId, updates.title);
       }
       // For other metadata updates
-      if (updates.context || Object.keys(updates).some((key) => key !== 'title')) {
+      if (updates.metadata || Object.keys(updates).some((key) => key !== 'title')) {
         const metadata = {
           ...(updates.title && { threadTitle: updates.title }),
-          ...(updates.context && { grafanaContext: updates.context }),
         };
         await updateThread(threadId, metadata);
       }

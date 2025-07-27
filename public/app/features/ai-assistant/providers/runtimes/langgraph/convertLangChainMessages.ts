@@ -44,10 +44,18 @@ export const convertLangChainMessages: useExternalMessageConverter.Callback<Lang
         content: [{ type: 'text', text: message.content }],
       };
     case 'human':
+      const syncUserContext = message?.additional_kwargs?.metadata?.userContext;
+      const localUserContext = message?.metadata?.userContext;
+      const userContext = syncUserContext || localUserContext;
       return {
         role: 'user',
         id: message.id,
         content: contentToParts(message.content),
+        metadata: {
+          ...(userContext && {
+            custom: { userContext },
+          }),
+        },
       };
     case 'ai':
       return {

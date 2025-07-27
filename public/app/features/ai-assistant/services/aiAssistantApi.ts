@@ -166,11 +166,11 @@ export const sendMessage = async (params: {
                   type: 'function',
                   function: {
                     name,
-                    description: params.tools?.[name]?.description || `Grafana tool: ${name}`,
-                    parameters: params.tools?.[name]?.parameters || {
-                      type: 'object',
-                      properties: {},
-                    },
+                    // description: params.tools?.[name]?.description || `Grafana tool: ${name}`,
+                    // parameters: params.tools?.[name]?.parameters || {
+                    //   type: 'object',
+                    //   properties: {},
+                    // },
                   },
                 }))
               : [],

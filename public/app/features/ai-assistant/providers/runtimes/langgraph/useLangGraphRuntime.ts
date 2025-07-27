@@ -27,6 +27,7 @@ import type { FeedbackAdapter } from '@assistant-ui/react';
 import type { SpeechSynthesisAdapter } from '@assistant-ui/react';
 import { appendLangChainChunk } from './appendLangChainChunk';
 import useAiAssistant from 'app/features/ai-assistant/hooks/useAiAssistant';
+import { useAtSelection } from '../../../contexts/AtSelectionContext';
 
 const getPendingToolCalls = (messages: LangChainMessage[]) => {
   const pendingToolCalls = new Map<string, LangChainToolCall>();
@@ -164,12 +165,12 @@ export const useLangGraphRuntime = ({
   const [isRunning, setIsRunning] = useState(false);
   const processedToolCallsRef = useRef(new Set<string>());
   const { threads, archivedThreads, onRename, onDelete } = useAiAssistant();
+  const { stagingItems, isActive } = useAtSelection();
 
   const handleSendMessage = useCallback(
     async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
       try {
         setIsRunning(true);
-        console.log('messages', messages);
         await sendMessage(messages, config);
       } catch (error) {
         console.error('Error streaming messages:', error);
@@ -297,10 +298,8 @@ export const useLangGraphRuntime = ({
     onNew: (msg) => {
       // 清理已處理的 tool calls，開始新的對話輪次
       processedToolCallsRef.current.clear();
-      console.log('onNew', msg);
 
       const messageContent = getMessageContent(msg);
-      console.log('messageContent', messageContent);
 
       const cancellations =
         autoCancelPendingToolCalls !== false
@@ -316,9 +315,15 @@ export const useLangGraphRuntime = ({
             )
           : [];
 
+      // Get currently selected context items that are active
+      const userContext = stagingItems.filter((item) => isActive(item.uid));
+
       const finalMessage = {
         type: 'human',
         content: messageContent,
+        metadata: {
+          userContext: userContext,
+        },
       } as LangChainMessage;
 
       return handleSendMessage([...cancellations, finalMessage], {

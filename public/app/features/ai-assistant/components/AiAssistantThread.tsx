@@ -5,6 +5,7 @@ import {
   ActionBarPrimitive,
   BranchPickerPrimitive,
   useThread,
+  useMessage,
 } from '@assistant-ui/react';
 import { css } from '@emotion/css';
 import React from 'react';
@@ -16,6 +17,7 @@ import { useStyles2, Icon, Button, Stack, Text, Tooltip, TextArea, LoadingBar } 
 import { AiAssistantMessage } from './AiAssistantMessage';
 import { AtMenu } from './AtMenu';
 import { SelectedItems } from './SelectedItems';
+import { AtSelectionItem } from '../contexts/AtSelectionContext';
 
 /**
  * AI Assistant Thread Component
@@ -143,15 +145,36 @@ const ThreadSuggestions: React.FC = () => {
 /**
  * User Message Component
  *
- * Displays user messages with edit and action capabilities.
+ * Displays user messages with edit and action capabilities and selected context.
  */
 const AiAssistantUserMessage: React.FC = () => {
   const styles = useStyles2(getStyles);
+  const message = useMessage();
+  const metadataUserContext = (message as any)?.metadata?.custom?.userContext as AtSelectionItem[] | undefined;
 
   return (
     <MessagePrimitive.Root className={styles.userMessage}>
       <div className={styles.messageContent}>
+        {metadataUserContext && metadataUserContext.length > 0 && (
+          <div className={styles.contextDisplay}>
+            {metadataUserContext.map((item: AtSelectionItem) => (
+              <div key={item.uid} className={styles.contextItem}>
+                <Icon
+                  name={item.type === 'dashboard' ? 'dashboard' : 'database'}
+                  size="sm"
+                  className={styles.contextIcon}
+                />
+                <Tooltip content={item.name}>
+                  <Text variant="bodySmall" color="primary">
+                    {item.name}
+                  </Text>
+                </Tooltip>
+              </div>
+            ))}
+          </div>
+        )}
         <MessagePrimitive.Content />
+
         <div className={styles.actionContainer}>
           <BranchPicker />
           {/* <UserActionBar /> */}
@@ -572,6 +595,29 @@ const getStyles = (theme: GrafanaTheme2) => ({
       pointerEvents: 'none',
       visibility: 'hidden',
     },
+  }),
+  contextDisplay: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
+    marginBottom: theme.spacing(1),
+    flexWrap: 'wrap',
+  }),
+  contextItem: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
+    padding: theme.spacing(0.25, 0.75, 0.25, 0.25),
+    backgroundColor: theme.colors.background.secondary,
+    border: `1px solid ${theme.colors.border.weak}`,
+    borderRadius: theme.shape.radius.default,
+    flexShrink: 0,
+  }),
+  contextIcon: css({
+    color: theme.colors.text.secondary,
+    flexShrink: 0,
+    padding: theme.spacing(0.25),
+    borderRadius: theme.shape.radius.default,
   }),
   branchPicker: css({
     display: 'flex',

@@ -38,7 +38,7 @@ const useAiAssistantRuntime = () => {
   const tools = getAiAssistantTools();
   const isNewThreadRef = useRef(false); // Track if this is a new thread
   const { actions } = useAiAssistantContext();
-  const { selectedItems } = useAtSelection();
+  const { stagingItems, isActive } = useAtSelection();
 
   // Enhanced message streaming with Grafana context
   const streamMessages = useCallback(
@@ -57,12 +57,13 @@ const useAiAssistantRuntime = () => {
         }
 
         const threadId = threadIdRef.current;
+        const userContext = stagingItems.filter((item) => isActive(item.uid));
 
         // Send messages with context and abort signal using LangGraph SDK
         const generator = sendMessage({
           threadId,
           messages,
-          context: selectedItems,
+          context: userContext,
         });
 
         // Check if this was a new thread with a human message
@@ -89,7 +90,6 @@ const useAiAssistantRuntime = () => {
             title,
             messages: [],
             lastActivity: new Date(),
-            context: {},
             metadata: {
               user: config.bootData.user,
               threadTitle: title,

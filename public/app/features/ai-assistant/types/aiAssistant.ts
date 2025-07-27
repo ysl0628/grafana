@@ -218,7 +218,9 @@ export const AI_ASSISTANT_EXTENSION_POINT = {
 } as const;
 
 export interface LogData {
+  metric?: Record<string, string>;
   labels?: Record<string, string>;
   line: string;
   timestamp: string;
+  values?: any[];
 }

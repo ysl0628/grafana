@@ -87,7 +87,23 @@ const StatPanelContent: React.FC<{
 }> = ({ data, title, isLoading, error }) => {
   const styles = useStyles2(getStyles);
 
-  const fields = [
+  const metrics = data[0]?.metric;
+  const metricName = metrics?.__name__;
+  const metricFields = [
+    {
+      name: 'Time',
+      type: FieldType.time,
+      values: data[0].values?.map((valueArray) => valueArray[0] * 1000) || [],
+    },
+    {
+      name: metricName || 'Value',
+      type: FieldType.number,
+      values: data[0].values?.map((valueArray) => Number(valueArray[1])) || [],
+      ...(metricName ? { labels: metrics } : {}),
+    },
+  ];
+
+  const normalFields = [
     {
       name: 'Time',
       type: FieldType.time,
@@ -101,7 +117,7 @@ const StatPanelContent: React.FC<{
         }) || [],
     },
     {
-      name: 'Value',
+      name: metricName ? metricName : 'Value',
       type: FieldType.number,
       values:
         data?.map((log) => {
@@ -111,6 +127,8 @@ const StatPanelContent: React.FC<{
         }) || [],
     },
   ];
+
+  const fields = metricName ? metricFields : normalFields;
 
   const dataProvider = new SceneDataNode({
     data: {

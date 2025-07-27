@@ -81,6 +81,7 @@ export const useLangGraphMessages = <TMessage extends { id?: string }>({
         appendMessage,
       });
       setMessages(accumulator.addMessages(newMessagesWithId));
+      console.log('sendMessage messages', messages);
 
       const abortController = new AbortController();
       abortControllerRef.current = abortController;

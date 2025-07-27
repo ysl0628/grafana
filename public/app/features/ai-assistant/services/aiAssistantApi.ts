@@ -123,16 +123,24 @@ export const switchToThread = async (threadId: string) => {
   return await getThreadState(threadId);
 };
 
-const getContextInfo = (context: AtSelectionItem[]) => {
-  return context
-    .map((ctx: AtSelectionItem) => {
-      const name = ctx.name || 'Unknown';
-      const type = ctx.type || 'Unknown';
-      const uid = ctx.uid || 'Unknown';
-      const orgId = ctx.orgId || 'Unknown';
-      return `${name} (type: ${type}, uid: ${uid}, orgId: ${orgId})`;
-    })
-    .join(', ');
+const getContextInfo = (context: AtSelectionItem[] | undefined) => {
+  if (!context) return {};
+
+  const datasources: AtSelectionItem[] = [];
+  const dashboards: AtSelectionItem[] = [];
+
+  context.forEach((item) => {
+    if (item.type === 'dashboard') {
+      dashboards.push(item);
+    } else {
+      datasources.push(item);
+    }
+  });
+
+  return {
+    datasources,
+    dashboards,
+  };
 };
 
 /**
@@ -144,14 +152,6 @@ export const sendMessage = async (params: {
   context?: AtSelectionItem[];
   tools?: AiAssistantTools;
 }) => {
-  // Create system message based on context
-  let systemMessage = '';
-  if (params.context && params.context.length > 0) {
-    const contextInfo = getContextInfo(params.context);
-
-    systemMessage = `I am using the following Grafana context: ${contextInfo}. This context provides access to the selected datasource or dashboard information.`;
-  }
-
   // Messages are already in LangChain format from the runtime, no need to convert
   const messages = params.messages;
   const convertedToolMessage = convertToolMessage(params.messages[0]);
@@ -174,14 +174,12 @@ export const sendMessage = async (params: {
                   },
                 }))
               : [],
-            system: systemMessage,
+            user_context: getContextInfo(params.context),
           },
         }
       : {}),
     command: convertedToolMessage,
-    metadata: {
-      threadTitle: getThreadTitle(messages[0]) || 'New Chat',
-    },
+    metadata: {},
     streamMode: ['messages-tuple', 'messages', 'updates'] as StreamMode[],
     streamResumable: true,
   };

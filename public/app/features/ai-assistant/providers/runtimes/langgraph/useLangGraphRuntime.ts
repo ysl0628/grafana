@@ -169,6 +169,7 @@ export const useLangGraphRuntime = ({
     async (messages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
       try {
         setIsRunning(true);
+        console.log('messages', messages);
         await sendMessage(messages, config);
       } catch (error) {
         console.error('Error streaming messages:', error);
@@ -296,8 +297,10 @@ export const useLangGraphRuntime = ({
     onNew: (msg) => {
       // 清理已處理的 tool calls，開始新的對話輪次
       processedToolCallsRef.current.clear();
+      console.log('onNew', msg);
 
       const messageContent = getMessageContent(msg);
+      console.log('messageContent', messageContent);
 
       const cancellations =
         autoCancelPendingToolCalls !== false
@@ -342,7 +345,6 @@ export const useLangGraphRuntime = ({
               status: isError ? 'error' : 'success',
             },
           ],
-          // TODO reuse runconfig here!
           {}
         );
       } catch (error) {

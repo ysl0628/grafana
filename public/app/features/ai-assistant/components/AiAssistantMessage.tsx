@@ -29,7 +29,7 @@ import { ToolFallback, LokiToolFallback, PrometheusToolFallback } from './tool-f
  */
 export const AiAssistantMessage: React.FC = () => {
   const styles = useStyles2(getStyles);
-  // const message = useMessage();
+  const message = useMessage();
 
   return (
     <MessagePrimitive.Root className={styles.assistantMessage}>

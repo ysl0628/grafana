@@ -77,7 +77,10 @@ function aiAssistantReducer(state: AiAssistantState, action: AiAssistantAction):
       return {
         ...state,
         threads: filteredThreadsMap,
-        currentThreadId: state.currentThreadId === action.payload ? null : state.currentThreadId,
+        currentThreadId:
+          state.currentThreadId === action.payload
+            ? state.threads.values()?.next().value?.threadId || null
+            : state.currentThreadId,
       };
 
     case 'ARCHIVE_THREAD':
@@ -186,6 +189,7 @@ export const AiAssistantContextProvider: React.FC<AiAssistantContextProviderProp
 
     try {
       await deleteThread(threadId);
+
       dispatch({ type: 'DELETE_THREAD', payload: threadId });
     } catch (error) {
       console.error('Error deleting thread:', error);

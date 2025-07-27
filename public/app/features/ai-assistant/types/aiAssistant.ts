@@ -81,6 +81,7 @@ export interface ThreadState {
   title?: string;
   metadata: {
     user?: CurrentUserDTO;
+    threadTitle?: string;
   };
 }
 

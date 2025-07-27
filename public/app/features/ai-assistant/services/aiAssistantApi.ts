@@ -1,7 +1,8 @@
-import { Client, Metadata, type ThreadState } from '@langchain/langgraph-sdk';
+import { Client, Metadata, StreamMode, type ThreadState } from '@langchain/langgraph-sdk';
 import { config } from '@grafana/runtime';
-import { AiAssistantMessage, GrafanaContext, AiAssistantTools } from '../types/aiAssistant';
+import { AiAssistantMessage, AiAssistantTools } from '../types/aiAssistant';
 import { LangChainMessage } from '../providers/runtimes/langgraph/types';
+import { AtSelectionItem } from '../contexts/AtSelectionContext';
 
 /**
  * AI Assistant API Service using LangGraph SDK
@@ -12,19 +13,13 @@ import { LangChainMessage } from '../providers/runtimes/langgraph/types';
 
 // LangGraph client configuration
 const client = new Client({
-  apiUrl: config?.aiAssistantApiUrl || 'https://grafana-llm-agent.zeabur.app',
+  // apiUrl: config?.aiAssistantApiUrl || 'https://grafana-llm-agent.zeabur.app',
+  apiUrl: 'https://grafana-llm-agent.zeabur.app',
 });
 
 interface CreateThreadResponse {
   thread_id: string;
   created_at: string;
-}
-
-interface SendMessageRequest {
-  threadId: string;
-  messages: LangChainMessage[];
-  context?: GrafanaContext;
-  tools?: AiAssistantTools;
 }
 
 /**
@@ -89,7 +84,7 @@ const convertToolMessage = (toolMessage: LangChainMessage) => {
 /**
  * Extract thread title from the first message
  */
-const getThreadTitle = (message: LangChainMessage | undefined): string | undefined => {
+export const getThreadTitle = (message: LangChainMessage | undefined): string | undefined => {
   if (!message) return undefined;
 
   if (typeof message.content === 'string') {
@@ -115,19 +110,6 @@ export const createThread = async ({ metadata }: { metadata?: Metadata }): Promi
 };
 
 /**
- * Create a new thread with initial context using LangGraph SDK
- */
-// export const createNewThread = async (context?: GrafanaContext): Promise<CreateThreadResponse> => {
-//   const thread = await client.threads.create({
-//     metadata: { grafanaContext: context },
-//   });
-//   return {
-//     thread_id: thread.thread_id,
-//     created_at: thread.created_at,
-//   };
-// };
-
-/**
  * Get thread state using LangGraph SDK
  */
 export const getThreadState = async (threadId: string): Promise<ThreadState<{ messages: LangChainMessage[] }>> => {
@@ -141,15 +123,35 @@ export const switchToThread = async (threadId: string) => {
   return await getThreadState(threadId);
 };
 
+const getContextInfo = (context: AtSelectionItem[]) => {
+  return context
+    .map((ctx: AtSelectionItem) => {
+      const name = ctx.name || 'Unknown';
+      const type = ctx.type || 'Unknown';
+      const uid = ctx.uid || 'Unknown';
+      const orgId = ctx.orgId || 'Unknown';
+      return `${name} (type: ${type}, uid: ${uid}, orgId: ${orgId})`;
+    })
+    .join(', ');
+};
+
 /**
  * Send message and stream response using LangGraph SDK
  */
 export const sendMessage = async (params: {
   threadId: string;
   messages: LangChainMessage[];
-  context?: GrafanaContext;
+  context?: AtSelectionItem[];
   tools?: AiAssistantTools;
 }) => {
+  // Create system message based on context
+  let systemMessage = '';
+  if (params.context && params.context.length > 0) {
+    const contextInfo = getContextInfo(params.context);
+
+    systemMessage = `I am using the following Grafana context: ${contextInfo}. This context provides access to the selected datasource or dashboard information.`;
+  }
+
   // Messages are already in LangChain format from the runtime, no need to convert
   const messages = params.messages;
   const convertedToolMessage = convertToolMessage(params.messages[0]);
@@ -159,33 +161,32 @@ export const sendMessage = async (params: {
       ? {
           input: {
             messages: messages,
-            grafanaContext: params.context,
             tools: params.tools
               ? Object.keys(params.tools).map((name) => ({
                   type: 'function',
                   function: {
                     name,
-                    description: params.tools![name].description || `Grafana tool: ${name}`,
-                    parameters: params.tools![name].parameters || {
+                    description: params.tools?.[name]?.description || `Grafana tool: ${name}`,
+                    parameters: params.tools?.[name]?.parameters || {
                       type: 'object',
                       properties: {},
                     },
                   },
                 }))
               : [],
+            system: systemMessage,
           },
         }
       : {}),
     command: convertedToolMessage,
     metadata: {
       threadTitle: getThreadTitle(messages[0]) || 'New Chat',
-      grafanaContext: params.context,
     },
-    streamMode: ['messages-tuple', 'messages', 'updates'],
+    streamMode: ['messages-tuple', 'messages', 'updates'] as StreamMode[],
     streamResumable: true,
   };
 
-  return client.runs.stream(params.threadId, config.aiAssistantId || 'agent', payload);
+  return client.runs.stream(params.threadId, 'agent', payload);
 };
 
 /**

@@ -13,6 +13,7 @@ import { AiAssistantComponentProps } from '../types/aiAssistant';
 import { AiAssistantThread } from './AiAssistantThread';
 import { ThreadDropdown, ThreadNewButton } from './ThreadDropdown';
 import { useThread, useThreadListItem } from '@assistant-ui/react';
+import { AtSelectionProvider } from '../contexts/AtSelectionContext';
 
 /**
  * AI Assistant Sidebar Component
@@ -25,11 +26,13 @@ export const AiAssistantSidebar: React.FC<AiAssistantComponentProps> = ({ classN
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
-      <AiAssistantContextProvider>
-        <AiAssistantRuntimeProvider>
-          <AiAssistantContent onClose={onClose} />
-        </AiAssistantRuntimeProvider>
-      </AiAssistantContextProvider>
+      <AtSelectionProvider>
+        <AiAssistantContextProvider>
+          <AiAssistantRuntimeProvider>
+            <AiAssistantContent onClose={onClose} />
+          </AiAssistantRuntimeProvider>
+        </AiAssistantContextProvider>
+      </AtSelectionProvider>
     </div>
   );
 };
@@ -156,16 +159,6 @@ const AiAssistantContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
           </Alert>
         </div>
       )}
-
-      {/* Loading State */}
-      {/* {isRunning && (
-        <div className={styles.loadingContainer}>
-          <Stack alignItems="center" gap={1}>
-            <Spinner size="md" />
-            <Text variant="body">{t('ai-assistant.loading', 'Loading AI Assistant...')}</Text>
-          </Stack>
-        </div>
-      )} */}
 
       {/* Main Thread Interface */}
       <div className={styles.threadContainer}>

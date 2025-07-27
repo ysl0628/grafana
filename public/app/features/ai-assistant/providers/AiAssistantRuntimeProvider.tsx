@@ -5,10 +5,11 @@ import { LangChainMessage, useLangGraphRuntime } from './runtimes/langgraph';
 
 import { config, locationService } from '@grafana/runtime';
 
-import { createThread, sendMessage, getThreadState } from '../services/aiAssistantApi';
+import { createThread, sendMessage, getThreadState, getThreadTitle } from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import { useGrafanaContext } from '../utils/grafanaContext';
 import { useAiAssistantContext } from './AiAssistantContextProvider';
+import { useAtSelection } from '../contexts/AtSelectionContext';
 
 interface AiAssistantRuntimeProviderProps {
   children: ReactNode;
@@ -37,7 +38,7 @@ const useAiAssistantRuntime = () => {
   const tools = getAiAssistantTools();
   const isNewThreadRef = useRef(false); // Track if this is a new thread
   const { actions } = useAiAssistantContext();
-  // const getGrafanaContext = useGrafanaContext();
+  const { selectedItems } = useAtSelection();
 
   // Enhanced message streaming with Grafana context
   const streamMessages = useCallback(
@@ -45,7 +46,12 @@ const useAiAssistantRuntime = () => {
       try {
         // Ensure we have a thread ID
         if (!threadIdRef.current) {
-          const response = await createThread({ metadata: { user: config.bootData.user } });
+          const response = await createThread({
+            metadata: {
+              user: config.bootData.user,
+              threadTitle: getThreadTitle(messages[0]) || 'New Chat',
+            },
+          });
           threadIdRef.current = response.thread_id;
           isNewThreadRef.current = true; // Mark this as a new thread
         }
@@ -56,6 +62,7 @@ const useAiAssistantRuntime = () => {
         const generator = sendMessage({
           threadId,
           messages,
+          context: selectedItems,
         });
 
         // Check if this was a new thread with a human message
@@ -65,7 +72,7 @@ const useAiAssistantRuntime = () => {
 
         // If this was a new thread with a human message, add it to the thread list
         if (shouldAddToThreadList) {
-          let title = 'New Chat';
+          let title = 'New';
           const firstMessage = messages[0];
           if (typeof firstMessage.content === 'string') {
             title = firstMessage.content.slice(0, 50);
@@ -77,7 +84,6 @@ const useAiAssistantRuntime = () => {
               }
             }
           }
-
           actions.addThread({
             threadId,
             title,
@@ -86,6 +92,7 @@ const useAiAssistantRuntime = () => {
             context: {},
             metadata: {
               user: config.bootData.user,
+              threadTitle: title,
             },
           });
 

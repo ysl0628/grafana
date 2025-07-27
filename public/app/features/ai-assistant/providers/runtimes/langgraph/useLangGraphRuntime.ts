@@ -222,13 +222,13 @@ export const useLangGraphRuntime = ({
   // Memoized thread mappings to prevent infinite loop warnings
   const mappedThreads = threads.map((t) => ({
     threadId: t.threadId,
-    title: t.title || 'New Chat',
+    title: t?.metadata?.threadTitle || t.title || 'New Chat',
     status: 'regular' as const,
   }));
 
   const mappedArchivedThreads = archivedThreads.map((t) => ({
     threadId: t.threadId,
-    title: t.title || 'New Chat',
+    title: t?.metadata?.threadTitle || t.title || 'New Chat',
     status: 'archived' as const,
   }));
 

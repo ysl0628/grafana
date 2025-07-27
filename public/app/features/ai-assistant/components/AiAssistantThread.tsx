@@ -14,7 +14,6 @@ import { t } from '@grafana/i18n';
 import { useStyles2, Icon, Button, Stack, Text, Tooltip, TextArea, LoadingBar } from '@grafana/ui';
 
 import { AiAssistantMessage } from './AiAssistantMessage';
-import { AtSelectionProvider } from '../contexts/AtSelectionContext';
 import { AtMenu } from './AtMenu';
 import { SelectedItems } from './SelectedItems';
 
@@ -28,26 +27,24 @@ export const AiAssistantThread: React.FC = () => {
   const styles = useStyles2(getStyles);
 
   return (
-    <AtSelectionProvider>
-      <div className={styles.container}>
-        <ThreadPrimitive.Root className={styles.threadRoot}>
-          <ThreadPrimitive.Viewport className={styles.viewport}>
-            <ThreadWelcome />
-            <ThreadPrimitive.Messages
-              components={{
-                UserMessage: AiAssistantUserMessage,
-                AssistantMessage: AiAssistantMessage,
-                EditComposer: AiAssistantEditComposer,
-              }}
-            />
-          </ThreadPrimitive.Viewport>
-          <div className={styles.composerContainer}>
-            <ThreadScrollToBottom />
-            <AiAssistantComposer />
-          </div>
-        </ThreadPrimitive.Root>
-      </div>
-    </AtSelectionProvider>
+    <div className={styles.container}>
+      <ThreadPrimitive.Root className={styles.threadRoot}>
+        <ThreadPrimitive.Viewport className={styles.viewport}>
+          <ThreadWelcome />
+          <ThreadPrimitive.Messages
+            components={{
+              UserMessage: AiAssistantUserMessage,
+              AssistantMessage: AiAssistantMessage,
+              EditComposer: AiAssistantEditComposer,
+            }}
+          />
+        </ThreadPrimitive.Viewport>
+        <div className={styles.composerContainer}>
+          <ThreadScrollToBottom />
+          <AiAssistantComposer />
+        </div>
+      </ThreadPrimitive.Root>
+    </div>
   );
 };
 

@@ -174,10 +174,10 @@ const AiAssistantUserMessage: React.FC = () => {
           </div>
         )}
         <MessagePrimitive.Content />
+        <UserActionBar />
 
         <div className={styles.actionContainer}>
           <BranchPicker />
-          {/* <UserActionBar /> */}
         </div>
       </div>
     </MessagePrimitive.Root>
@@ -195,14 +195,13 @@ const UserActionBar: React.FC = () => {
   return (
     <ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className={styles.actionBar}>
       <ActionBarPrimitive.Edit asChild>
-        <Tooltip content={t('ai-assistant.message.edit-tooltip', 'Edit message')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="edit"
-            aria-label={t('ai-assistant.message.edit-aria-label', 'Edit message')}
-          />
-        </Tooltip>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon="edit"
+          tooltip={t('ai-assistant.message.edit-tooltip', 'Edit message')}
+          aria-label={t('ai-assistant.message.edit-aria-label', 'Edit message')}
+        />
       </ActionBarPrimitive.Edit>
     </ActionBarPrimitive.Root>
   );
@@ -211,17 +210,44 @@ const UserActionBar: React.FC = () => {
 /**
  * Edit Composer Component
  *
- * Allows editing of user messages.
+ * Allows editing of user messages with the same visual style as AiAssistantUserMessage.
  */
 const AiAssistantEditComposer: React.FC = () => {
   const styles = useStyles2(getStyles);
+  const message = useMessage();
+  const metadataUserContext = (message as any)?.metadata?.custom?.userContext as AtSelectionItem[] | undefined;
 
   return (
-    <div className={styles.editComposer}>
-      <ComposerPrimitive.Root className={styles.editComposerRoot}>
-        <ComposerPrimitive.Input asChild className={styles.editInput}>
-          <TextArea />
-        </ComposerPrimitive.Input>
+    <MessagePrimitive.Root className={styles.userMessage}>
+      <div className={styles.messageContent}>
+        {/* Display context if available */}
+        {metadataUserContext && metadataUserContext.length > 0 && (
+          <div className={styles.contextDisplay}>
+            {metadataUserContext.map((item: AtSelectionItem) => (
+              <div key={item.uid} className={styles.contextItem}>
+                <Icon
+                  name={item.type === 'dashboard' ? 'dashboard' : 'database'}
+                  size="sm"
+                  className={styles.contextIcon}
+                />
+                <Tooltip content={item.name}>
+                  <Text variant="bodySmall" color="primary">
+                    {item.name}
+                  </Text>
+                </Tooltip>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Editable content area */}
+        <ComposerPrimitive.Root className={styles.editComposerRoot}>
+          <ComposerPrimitive.Input asChild className={styles.editInput}>
+            <TextArea />
+          </ComposerPrimitive.Input>
+        </ComposerPrimitive.Root>
+
+        {/* Edit actions */}
         <div className={styles.editActions}>
           <ComposerPrimitive.Cancel asChild>
             <Button variant="secondary" size="sm">
@@ -234,8 +260,8 @@ const AiAssistantEditComposer: React.FC = () => {
             </Button>
           </ComposerPrimitive.Send>
         </div>
-      </ComposerPrimitive.Root>
-    </div>
+      </div>
+    </MessagePrimitive.Root>
   );
 };
 
@@ -462,8 +488,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexDirection: 'column',
     padding: theme.spacing(2),
     wordBreak: 'break-word',
-    fontSize: theme.typography.bodySmall.fontSize,
+    fontSize: theme.typography.body.fontSize,
     lineHeight: 1.6,
+    position: 'relative',
     '& > p': {
       margin: 0,
     },
@@ -477,10 +504,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
     display: 'flex',
     flex: 1,
     justifyContent: 'flex-end',
-    opacity: 0.7,
-    '&:hover': {
-      opacity: 1,
-    },
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
   }),
   editComposer: css({
     width: '100%',
@@ -490,15 +516,25 @@ const getStyles = (theme: GrafanaTheme2) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(1),
+    marginBottom: theme.spacing(1),
   }),
   editInput: css({
-    minHeight: theme.spacing(8),
+    // minHeight: theme.spacing(8),
     resize: 'vertical',
+    border: 'none',
+    borderRadius: theme.shape.radius.default,
+    // padding: theme.spacing(1),
+    backgroundColor: 'transparent',
+    '&:focus': {
+      borderColor: theme.colors.text.secondary,
+      outline: 'none',
+    },
   }),
   editActions: css({
     display: 'flex',
     gap: theme.spacing(1),
     justifyContent: 'flex-end',
+    marginTop: theme.spacing(1),
   }),
   composerContainer: css({
     padding: theme.spacing(0.5, 1, 0.5, 1),

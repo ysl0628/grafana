@@ -180,7 +180,11 @@ export const sendMessage = async (params: {
       : {}),
     command: convertedToolMessage,
     metadata: {},
-    streamMode: ['messages-tuple', 'messages', 'updates'] as StreamMode[],
+    streamMode: [
+      //   'messages-tuple',
+      'messages',
+      // 'updates',
+    ] as StreamMode[],
     streamResumable: true,
   };
 

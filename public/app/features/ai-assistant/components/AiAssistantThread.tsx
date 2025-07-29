@@ -216,6 +216,7 @@ const AiAssistantEditComposer: React.FC = () => {
   const styles = useStyles2(getStyles);
   const message = useMessage();
   const metadataUserContext = (message as any)?.metadata?.custom?.userContext as AtSelectionItem[] | undefined;
+  console.log('message', message);
 
   return (
     <MessagePrimitive.Root className={styles.userMessage}>

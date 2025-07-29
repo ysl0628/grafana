@@ -2,6 +2,7 @@ import { type ToolCallContentPartComponent } from '@assistant-ui/react';
 import { QueryToolFallback } from './QueryToolFallback';
 import { PanelToolWrapper } from './PanelToolWrapper';
 import { createStatFromToolResult } from '../panel/StatPanelComponent';
+import { createTimeSeriesFromToolResult } from '../panel/TimeSeriesPanelComponent';
 
 /**
  * Example implementations using DirectDataLogsPanelComponent
@@ -29,7 +30,13 @@ export const PrometheusToolFallback: ToolCallContentPartComponent = ({ toolName,
           data={data}
           error={panelError || isError ? new Error(result) : null}
         >
-          {createStatFromToolResult({
+          {/* {createStatFromToolResult({
+            data,
+            query: args.expr || args.logql,
+            datasourceUid: args.datasourceUid,
+            error: panelError || isError ? result : undefined,
+          })} */}
+          {createTimeSeriesFromToolResult({
             data,
             query: args.expr || args.logql,
             datasourceUid: args.datasourceUid,

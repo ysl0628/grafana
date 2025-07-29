@@ -51,6 +51,7 @@ export const convertLangChainMessages: useExternalMessageConverter.Callback<Lang
         role: 'user',
         id: message.id,
         content: contentToParts(message.content),
+        ...(message.parentId && { parentId: message.parentId }),
         metadata: {
           ...(userContext && {
             custom: { userContext },

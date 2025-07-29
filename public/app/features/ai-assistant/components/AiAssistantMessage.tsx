@@ -3,8 +3,8 @@ import {
   ActionBarPrimitive,
   BranchPickerPrimitive,
   ErrorPrimitive,
+  useMessageUtils,
   useMessage,
-  TextMessagePart,
 } from '@assistant-ui/react';
 import {
   type CodeHeaderProps,
@@ -15,10 +15,10 @@ import {
 import remarkGfm from 'remark-gfm';
 
 import { css } from '@emotion/css';
-import React, { useState, FC } from 'react';
+import React, { useState, FC, forwardRef } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { useStyles2, Button, Text, Tooltip, Alert } from '@grafana/ui';
+import { useStyles2, Button, Text, Alert, ButtonProps } from '@grafana/ui';
 import { ToolFallback, LokiToolFallback, PrometheusToolFallback } from './tool-fallback';
 
 /**
@@ -29,6 +29,8 @@ import { ToolFallback, LokiToolFallback, PrometheusToolFallback } from './tool-f
  */
 export const AiAssistantMessage: React.FC = () => {
   const styles = useStyles2(getStyles);
+  const message = useMessage();
+  console.log('message', message);
 
   return (
     <MessagePrimitive.Root className={styles.assistantMessage}>
@@ -71,6 +73,10 @@ const MarkdownText: React.FC = () => {
   );
 };
 
+const ActionButton = forwardRef<HTMLButtonElement, ButtonProps>(({ children, ...props }, ref) => {
+  return <Button {...props} size="sm" variant="secondary" ref={ref} />;
+});
+
 /**
  * Assistant Action Bar Component
  *
@@ -78,32 +84,24 @@ const MarkdownText: React.FC = () => {
  */
 const AssistantActionBar: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const { isCopied, copyToClipboard } = useCopyToClipboard();
-  const message = useMessage();
+  const isCopied = useMessageUtils((u) => u.isCopied);
 
   return (
     <ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className={styles.actionBar}>
       <ActionBarPrimitive.Copy asChild>
-        <Tooltip content={t('ai-assistant.message.copy-tooltip', 'Copy message')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={isCopied ? 'check' : 'copy'}
-            aria-label={t('ai-assistant.message.copy-aria-label', 'Copy message')}
-            onClick={() => copyToClipboard(JSON.stringify((message.content as TextMessagePart[])[0]?.text, null, 2))}
-          />
-        </Tooltip>
+        <ActionButton
+          icon={isCopied ? 'check' : 'copy'}
+          tooltip={t('ai-assistant.message.copy-tooltip', 'Copy message')}
+          aria-label={t('ai-assistant.message.copy-aria-label', 'Copy message')}
+        />
       </ActionBarPrimitive.Copy>
 
       <ActionBarPrimitive.Reload asChild>
-        <Tooltip content={t('ai-assistant.message.regenerate-tooltip', 'Regenerate response')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="sync"
-            aria-label={t('ai-assistant.message.regenerate-aria-label', 'Regenerate response')}
-          />
-        </Tooltip>
+        <ActionButton
+          icon="sync"
+          aria-label={t('ai-assistant.message.regenerate-aria-label', 'Regenerate response')}
+          tooltip={t('ai-assistant.message.regenerate-tooltip', 'Regenerate response')}
+        />
       </ActionBarPrimitive.Reload>
     </ActionBarPrimitive.Root>
   );
@@ -139,14 +137,13 @@ const BranchPicker: React.FC = () => {
   return (
     <BranchPickerPrimitive.Root hideWhenSingleBranch className={styles.branchPicker}>
       <BranchPickerPrimitive.Previous asChild>
-        <Tooltip content={t('ai-assistant.message.previous-response-tooltip', 'Previous response')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="arrow-left"
-            aria-label={t('ai-assistant.message.previous-response-aria-label', 'Previous response')}
-          />
-        </Tooltip>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon="arrow-left"
+          aria-label={t('ai-assistant.message.previous-response-aria-label', 'Previous response')}
+          tooltip={t('ai-assistant.message.previous-response-tooltip', 'Previous response')}
+        />
       </BranchPickerPrimitive.Previous>
 
       <Text variant="bodySmall" color="secondary">
@@ -154,14 +151,13 @@ const BranchPicker: React.FC = () => {
       </Text>
 
       <BranchPickerPrimitive.Next asChild>
-        <Tooltip content={t('ai-assistant.message.next-response-tooltip', 'Next response')}>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="arrow-right"
-            aria-label={t('ai-assistant.message.next-response-aria-label', 'Next response')}
-          />
-        </Tooltip>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon="arrow-right"
+          aria-label={t('ai-assistant.message.next-response-aria-label', 'Next response')}
+          tooltip={t('ai-assistant.message.next-response-tooltip', 'Next response')}
+        />
       </BranchPickerPrimitive.Next>
     </BranchPickerPrimitive.Root>
   );

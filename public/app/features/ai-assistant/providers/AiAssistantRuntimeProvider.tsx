@@ -1,11 +1,17 @@
 import { AssistantRuntimeProvider, ThreadMessage } from '@assistant-ui/react';
-import React, { useRef, ReactNode, useCallback, useEffect } from 'react';
+import React, { useRef, ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { LangChainMessage, useLangGraphRuntime } from './runtimes/langgraph';
 
 import { config, locationService } from '@grafana/runtime';
 
-import { createThread, sendMessage, getThreadState, getThreadTitle } from '../services/aiAssistantApi';
+import {
+  createThread,
+  sendMessage,
+  getThreadState,
+  getThreadTitle,
+  getThreadHistory,
+} from '../services/aiAssistantApi';
 import { getAiAssistantTools } from '../services/aiAssistantTools';
 import { useGrafanaContext } from '../utils/grafanaContext';
 import { useAiAssistantContext } from './AiAssistantContextProvider';
@@ -39,6 +45,7 @@ const useAiAssistantRuntime = () => {
   const isNewThreadRef = useRef(false); // Track if this is a new thread
   const { actions } = useAiAssistantContext();
   const { stagingItems, isActive } = useAtSelection();
+  const [threadInfo, setThreadInfo] = useState<any>(null);
 
   // Enhanced message streaming with Grafana context
   const streamMessages = useCallback(
@@ -64,12 +71,17 @@ const useAiAssistantRuntime = () => {
           threadId,
           messages,
           context: userContext,
+          checkpoint: threadInfo?.checkpoint,
         });
 
         // Check if this was a new thread with a human message
         const shouldAddToThreadList = isNewThreadRef.current && messages.length > 0 && messages[0].type === 'human';
 
         yield* await generator;
+
+        const history = await getThreadHistory(threadIdRef.current || '');
+        console.log('history', history);
+        setThreadInfo(history[0]);
 
         // If this was a new thread with a human message, add it to the thread list
         if (shouldAddToThreadList) {

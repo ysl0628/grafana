@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   LangChainMessage,
   LangChainToolCall,
@@ -28,6 +28,7 @@ import type { SpeechSynthesisAdapter } from '@assistant-ui/react';
 import { appendLangChainChunk } from './appendLangChainChunk';
 import useAiAssistant from 'app/features/ai-assistant/hooks/useAiAssistant';
 import { useAtSelection } from '../../../contexts/AtSelectionContext';
+import { getThreadHistory } from 'app/features/ai-assistant/services/aiAssistantApi';
 
 const getPendingToolCalls = (messages: LangChainMessage[]) => {
   const pendingToolCalls = new Map<string, LangChainToolCall>();
@@ -278,7 +279,9 @@ export const useLangGraphRuntime = ({
     messages: threadMessages,
     adapters,
     extras,
+    setMessages,
     onNew: (msg) => {
+      console.log('onNew', msg);
       // 清理已處理的 tool calls，開始新的對話輪次
       processedToolCallsRef.current.clear();
 
@@ -347,10 +350,21 @@ export const useLangGraphRuntime = ({
         }
       : undefined,
     onReload: async (parentId, config) => {
-      console.log('onReload', parentId, config);
+      let messagesToReload = messages;
+
+      if (parentId) {
+        const parentIndex = messages.findIndex((m) => m.id === parentId);
+        if (parentIndex !== -1) {
+          messagesToReload = messages.slice(0, parentIndex + 1);
+        }
+      }
+
+      // 第一次：手動更新 messages 以觸發 branch 計算
+      setMessages(messagesToReload);
+
+      // 重新發送訊息到 LangGraph，讓 handleSendMessage 處理第二次 setMessages
+      await handleSendMessage(messagesToReload, {});
     },
-    onEdit: async (message) => {
-      console.log('onEdit', message);
-    },
+    onEdit: async (message) => {},
   });
 };

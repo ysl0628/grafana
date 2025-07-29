@@ -151,6 +151,7 @@ export const sendMessage = async (params: {
   messages: LangChainMessage[];
   context?: AtSelectionItem[];
   tools?: AiAssistantTools;
+  checkpoint?: any;
 }) => {
   // Messages are already in LangChain format from the runtime, no need to convert
   const messages = params.messages;
@@ -166,11 +167,6 @@ export const sendMessage = async (params: {
                   type: 'function',
                   function: {
                     name,
-                    // description: params.tools?.[name]?.description || `Grafana tool: ${name}`,
-                    // parameters: params.tools?.[name]?.parameters || {
-                    //   type: 'object',
-                    //   properties: {},
-                    // },
                   },
                 }))
               : [],
@@ -179,10 +175,11 @@ export const sendMessage = async (params: {
         }
       : {}),
     command: convertedToolMessage,
-    metadata: {},
+    ...(params.checkpoint && { checkpoint: params.checkpoint }),
+    // metadata: {},
     streamMode: [
-      //   'messages-tuple',
-      'messages',
+      'messages-tuple',
+      // 'messages',
       // 'updates',
     ] as StreamMode[],
     streamResumable: true,
@@ -233,20 +230,6 @@ export const updateThread = async (threadId: string, metadata: Record<string, an
 };
 
 /**
- * Get thread history using LangGraph SDK
- */
-export const getThreadHistory = async (threadId: string, limit?: number) => {
-  const state = await client.threads.getState(threadId);
-  const messages = state.values?.messages || [];
-
-  if (limit) {
-    return messages.slice(-limit);
-  }
-
-  return messages;
-};
-
-/**
  * Check API health using LangGraph SDK
  */
 export const checkApiHealth = async (): Promise<{ status: string; version?: string }> => {
@@ -259,6 +242,10 @@ export const checkApiHealth = async (): Promise<{ status: string; version?: stri
     console.error('Error checking API health:', error);
     return { status: 'error' };
   }
+};
+
+export const getThreadHistory = async (threadId: string) => {
+  return client.threads.getHistory(threadId);
 };
 
 /**
@@ -286,8 +273,8 @@ export default {
   listThreads: getThreadList,
   updateThread,
   updateThreadTitle,
-  getThreadHistory,
   checkApiHealth,
   cancelOperation,
+  getThreadHistory,
   convertMessagesToLangChain,
 };

@@ -62,6 +62,7 @@ type AssistantMessageContent = string | AssistantMessageContentComplex[];
 // 定義所有 message type 共同的屬性
 export type LangGraphMessageBase = {
   id?: string;
+  parentId?: string; // Add parentId for assistant-ui branch support
   additional_kwargs?: {
     metadata?: {
       userContext?: AtSelectionItem[];

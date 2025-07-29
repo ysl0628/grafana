@@ -11,8 +11,11 @@ export {
   type LangGraphCommand,
   type LangGraphSendMessageConfig,
   type LangGraphStreamCallback,
-  type LangGraphMessagesEvent,
 } from "./useLangGraphMessages";
+
+export type {
+  LangGraphMessagesEvent,
+} from "./types";
 export { convertLangChainMessages } from "./convertLangChainMessages";
 
 /**

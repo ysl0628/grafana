@@ -136,3 +136,30 @@ export type OnMetadataEventCallback = (metadata: unknown) => void | Promise<void
 export type OnInfoEventCallback = (info: unknown) => void | Promise<void>;
 export type OnErrorEventCallback = (error: unknown) => void | Promise<void>;
 export type OnCustomEventCallback = (type: string, data: unknown) => void | Promise<void>;
+
+// LangGraph runtime types
+export type LangGraphCommand = {
+  resume: string;
+};
+
+export type LangGraphSendMessageConfig = {
+  command?: LangGraphCommand;
+  runConfig?: unknown;
+};
+
+export type LangGraphMessagesEvent<TMessage> = {
+  event: EventType;
+  data: TMessage[] | any;
+};
+
+export type LangGraphStreamCallback<TMessage> = (
+  messages: TMessage[],
+  config: LangGraphSendMessageConfig & { abortSignal: AbortSignal }
+) => Promise<AsyncGenerator<LangGraphMessagesEvent<TMessage>>> | AsyncGenerator<LangGraphMessagesEvent<TMessage>>;
+
+export type LangGraphInterruptState = {
+  value?: any;
+  resumable?: boolean;
+  when: string;
+  ns?: string[];
+};

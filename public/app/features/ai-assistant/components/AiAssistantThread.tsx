@@ -27,6 +27,7 @@ import { AtSelectionItem } from '../contexts/AtSelectionContext';
  */
 export const AiAssistantThread: React.FC = () => {
   const styles = useStyles2(getStyles);
+  const { isRunning } = useThread();
 
   return (
     <div className={styles.container}>
@@ -43,6 +44,11 @@ export const AiAssistantThread: React.FC = () => {
         </ThreadPrimitive.Viewport>
         <div className={styles.composerContainer}>
           <ThreadScrollToBottom />
+          {isRunning && (
+            <div className={styles.composerLoading}>
+              <LoadingBar width={800} />
+            </div>
+          )}
           <AiAssistantComposer />
         </div>
       </ThreadPrimitive.Root>
@@ -273,11 +279,9 @@ const AiAssistantEditComposer: React.FC = () => {
  */
 const AiAssistantComposer: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const { isRunning } = useThread();
 
   return (
     <ComposerPrimitive.Root className={styles.composer}>
-      {isRunning && <LoadingBar width={200} delay={300} />}
       <div className={styles.composerHeader}>
         <AtMenu>
           <Button
@@ -661,6 +665,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignItems: 'center',
     gap: theme.spacing(1),
     marginTop: theme.spacing(0.5),
+  }),
+  composerLoading: css({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
   }),
 });
 

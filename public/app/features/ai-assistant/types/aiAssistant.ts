@@ -102,6 +102,15 @@ export interface ToolCall {
   executionTime?: number;
 }
 
+export interface AiAssistantTool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, any>;
+  };
+}
+
 export interface AiAssistantTools {
   getDashboardInfo: (context: GrafanaContext) => Promise<any>;
   queryData: (query: DataQuery, context: GrafanaContext) => Promise<any>;

@@ -1,6 +1,6 @@
 import { Client, Metadata, StreamMode, type ThreadState } from '@langchain/langgraph-sdk';
 import { config } from '@grafana/runtime';
-import { AiAssistantMessage, AiAssistantTools } from '../types/aiAssistant';
+import { AiAssistantMessage, AiAssistantTool } from '../types/aiAssistant';
 import { LangChainMessage } from '../providers/runtimes/langgraph/types';
 import { AtSelectionItem } from '../contexts/AtSelectionContext';
 
@@ -150,7 +150,7 @@ export const sendMessage = async (params: {
   threadId: string;
   messages: LangChainMessage[];
   context?: AtSelectionItem[];
-  tools?: AiAssistantTools;
+  tools?: AiAssistantTool[];
   checkpoint?: any;
 }) => {
   // Messages are already in LangChain format from the runtime, no need to convert
@@ -178,8 +178,8 @@ export const sendMessage = async (params: {
     ...(params.checkpoint && { checkpoint: params.checkpoint }),
     // metadata: {},
     streamMode: [
-      'messages-tuple',
-      // 'messages',
+      // 'messages-tuple',
+      'messages',
       // 'updates',
     ] as StreamMode[],
     streamResumable: true,

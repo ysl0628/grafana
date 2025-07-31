@@ -12,10 +12,9 @@ import {
   getThreadTitle,
   getThreadHistory,
 } from '../services/aiAssistantApi';
-import { getAiAssistantTools } from '../services/aiAssistantTools';
-import { useGrafanaContext } from '../utils/grafanaContext';
 import { useAiAssistantContext } from './AiAssistantContextProvider';
 import { useAtSelection } from '../contexts/AtSelectionContext';
+import tools from '../utils/tools';
 
 interface AiAssistantRuntimeProviderProps {
   children: ReactNode;
@@ -41,7 +40,6 @@ export const AiAssistantRuntimeProvider: React.FC<AiAssistantRuntimeProviderProp
  */
 const useAiAssistantRuntime = () => {
   const threadIdRef = useRef<string | undefined>(undefined);
-  const tools = getAiAssistantTools();
   const isNewThreadRef = useRef(false); // Track if this is a new thread
   const { actions } = useAiAssistantContext();
   const { stagingItems, isActive } = useAtSelection();
@@ -72,6 +70,7 @@ const useAiAssistantRuntime = () => {
           messages,
           context: userContext,
           checkpoint: threadInfo?.checkpoint,
+          tools,
         });
 
         // Check if this was a new thread with a human message
@@ -168,9 +167,6 @@ const useAiAssistantRuntime = () => {
       status: { type: 'incomplete', reason: 'error' },
     };
 
-    // Add error message to current thread
-    // Note: This would need to be integrated with the thread runtime
-    // For now, we'll log it and could use notification system
     console.log('Error message for thread:', errorMessage);
 
     // Could also trigger a notification
@@ -282,22 +278,6 @@ const useAiAssistantRuntime = () => {
   }, []);
 
   return runtime;
-};
-
-/**
- * Hook to get AI Assistant runtime context
- */
-export const useAiAssistantRuntimeContext = () => {
-  const getGrafanaContext = useGrafanaContext();
-  const context = getGrafanaContext();
-
-  return {
-    isEnabled: !!(config.featureToggles?.extensionSidebar && config.featureToggles?.aiAssistant !== false),
-    user: context.user,
-    location: locationService.getLocation(),
-    timeRange: context.timeRange,
-    dashboardId: context.dashboardId,
-  };
 };
 
 export default AiAssistantRuntimeProvider;

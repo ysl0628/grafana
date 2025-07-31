@@ -126,7 +126,6 @@ export const useLangGraphRuntime = ({
     ...(eventHandlers && { eventHandlers }),
   });
 
-  // 專門用於 reload 的函數，使用共用的 streaming 邏輯
   const sendMessageForReload = useCallback(
     async (newMessages: LangChainMessage[], config: LangGraphSendMessageConfig) => {
       await processLangGraphStream(

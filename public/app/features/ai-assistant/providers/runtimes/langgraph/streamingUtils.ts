@@ -83,6 +83,11 @@ export async function processLangGraphStream<TMessage extends { id?: string }>(
     });
 
     for await (const chunk of response) {
+      // Check if the operation was aborted
+      if (abortController.signal.aborted) {
+        break;
+      }
+
       switch (chunk.event) {
         case 'messages/partial':
         case 'messages/complete':

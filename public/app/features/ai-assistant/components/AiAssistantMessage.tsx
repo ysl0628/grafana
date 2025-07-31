@@ -4,7 +4,7 @@ import {
   BranchPickerPrimitive,
   ErrorPrimitive,
   useMessageUtils,
-  useMessage,
+  // useMessage,
 } from '@assistant-ui/react';
 import {
   type CodeHeaderProps,
@@ -29,8 +29,8 @@ import { ToolFallback, LokiToolFallback, PrometheusToolFallback } from './tool-f
  */
 export const AiAssistantMessage: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const message = useMessage();
-  console.log('message', message);
+  // const message = useMessage();
+  // console.log('message', message);
 
   return (
     <MessagePrimitive.Root className={styles.assistantMessage}>

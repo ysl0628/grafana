@@ -31,9 +31,9 @@ import {
   createOnNewHandler,
   createOnAddToolResultHandler,
   createOnReloadHandler,
-  createSetMessagesHandler,
+  // createSetMessagesHandler,
 } from './runtimeHandlers';
-
+import { cancelOperation } from 'app/features/ai-assistant/services/aiAssistantApi';
 
 const symbolLangGraphRuntimeExtras = Symbol('langgraph-runtime-extras');
 type LangGraphRuntimeExtras = {
@@ -266,17 +266,14 @@ export const useLangGraphRuntime = ({
   } satisfies LangGraphRuntimeExtras;
 
   // 使用提取的 setMessages 處理器
-  const handleSetMessages = useCallback(
-    createSetMessagesHandler(setMessages),
-    [setMessages]
-  );
+  // const handleSetMessages = useCallback(createSetMessagesHandler(setMessages), [setMessages]);
 
   return useExternalStoreRuntime({
     isRunning,
     messages: threadMessages,
     adapters,
     extras,
-    setMessages: handleSetMessages,
+    // setMessages: handleSetMessages,
     onNew: createOnNewHandler({
       handleSendMessage,
       setMessages,
@@ -296,6 +293,14 @@ export const useLangGraphRuntime = ({
     onCancel: unstable_allowCancellation
       ? async () => {
           cancel();
+          if (threadId) {
+            try {
+              await cancelOperation(threadId);
+              console.log('Backend operation cancelled for thread:', threadId);
+            } catch (error) {
+              console.error('Failed to cancel backend operation:', error);
+            }
+          }
         }
       : undefined,
     onReload: createOnReloadHandler({

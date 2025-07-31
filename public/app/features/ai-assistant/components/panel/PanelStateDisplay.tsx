@@ -74,14 +74,7 @@ export const PanelStateDisplay: React.FC<PanelStateDisplayProps> = ({
 
   // If data is non-array, display it directly instead of using children
   if (isNonArrayData) {
-    return (
-      <div className={styles.nonArrayContainer}>
-        <div className={styles.nonArrayHeader}>
-          <h4>📊 Data Result</h4>
-        </div>
-        {renderNonArrayData(data)}
-      </div>
-    );
+    return <div className={styles.nonArrayContainer}>{renderNonArrayData(data)}</div>;
   }
 
   return <>{children}</>;

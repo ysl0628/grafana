@@ -47,16 +47,6 @@ export const ToolFallback: ToolCallContentPartComponent = ({ toolName, argsText,
               </div>
             </div>
           )}
-          {/* Tool metadata footer */}
-          <div className={styles.footer}>
-            <Text variant="bodySmall">
-              {t('ai-assistant.tool.tool-type', '工具類型')}:{' '}
-              {t('ai-assistant.tool.general-processor', '通用處理器')}
-            </Text>
-            <Text variant="bodySmall">
-              {t('ai-assistant.tool.status-label', '狀態')}: {status?.type || 'unknown'}
-            </Text>
-          </div>
         </>
       )}
     </ToolLayoutWrapper>
@@ -99,15 +89,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     margin: 0,
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
-  }),
-  footer: css({
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: theme.spacing(1, 2),
-    backgroundColor: theme.colors.background.canvas,
-    borderRadius: theme.shape.radius.default,
-    marginTop: theme.spacing(1),
   }),
   thinkResult: css({
     fontSize: theme.typography.bodySmall.fontSize,

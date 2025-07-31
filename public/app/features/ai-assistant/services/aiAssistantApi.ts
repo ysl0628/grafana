@@ -162,14 +162,7 @@ export const sendMessage = async (params: {
       ? {
           input: {
             messages: messages,
-            tools: params.tools
-              ? Object.keys(params.tools).map((name) => ({
-                  type: 'function',
-                  function: {
-                    name,
-                  },
-                }))
-              : [],
+            tools: params.tools || [],
             user_context: getContextInfo(params.context),
           },
         }

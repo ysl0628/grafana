@@ -10,6 +10,7 @@ type NavigatorArgs = {
 };
 
 const NavigatorComponent = ({
+  args,
   result,
   addResult,
 }: {
@@ -17,10 +18,15 @@ const NavigatorComponent = ({
   result?: string;
   addResult: (result: any) => void;
 }) => {
+  console.log('args', args);
+  console.log('result', result);
+
   const styles = useStyles2(getStyles);
   const globalInterrupt = useLangGraphInterruptState();
   const [isLoading, setIsLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  console.log('globalInterrupt', globalInterrupt);
 
   const shouldShowResult = result !== undefined;
   const shouldShowInterrupt = !shouldShowResult && globalInterrupt;
@@ -97,7 +103,11 @@ const NavigatorComponent = ({
             <div className={styles.requestInfo}>
               <p className={styles.requestText}>
                 <strong>用戶請求：</strong>
-                {globalInterrupt?.value?.reason}
+                {globalInterrupt?.value?.reason || ''}
+              </p>
+              <p className={styles.requestText}>
+                <strong>URL：</strong>
+                {globalInterrupt?.value?.url || ''}
               </p>
             </div>
           </div>

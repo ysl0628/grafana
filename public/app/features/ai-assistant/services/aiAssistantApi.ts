@@ -176,7 +176,9 @@ export const sendMessage = async (params: {
       : {}),
     command: convertedToolMessage,
     ...(params.checkpoint && { checkpoint: params.checkpoint }),
-    // metadata: {},
+    metadata: {
+      current_url: window.location.href,
+    },
     streamMode: [
       // 'messages-tuple',
       'messages',

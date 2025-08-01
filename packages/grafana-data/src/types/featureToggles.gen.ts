@@ -1037,6 +1037,11 @@ export interface FeatureToggles {
   */
   foldersAppPlatformAPI?: boolean;
   /**
+  * Enable AI Assistant feature with conversational interface
+  * @default true
+  */
+  aiAssistant?: boolean;
+  /**
   * Set this to true to use the new PluginImporter functionality
   * @default false
   */

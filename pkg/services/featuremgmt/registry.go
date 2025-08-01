@@ -1784,6 +1784,14 @@ var (
 			Expression:        "false",
 		},
 		{
+			Name:         "aiAssistant",
+			Description:  "Enable AI Assistant feature with conversational interface",
+			Stage:        FeatureStagePublicPreview,
+			FrontendOnly: true,
+			Owner:        grafanaOperatorExperienceSquad,
+			Expression:   "true", // enabled by default for demo
+		},
+		{
 			Name:              "enablePluginImporter",
 			Description:       "Set this to true to use the new PluginImporter functionality",
 			Stage:             FeatureStageExperimental,

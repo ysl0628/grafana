@@ -238,3 +238,12 @@ public/app/plugins/**/dist/
 public/mockServiceWorker.js
 
 /e2e-playwright/test-plugins/*/dist
+node_modules/
+*.log
+.cache/
+bin/grafana
+data/
+.vscode/
+.idea/
+*.tmp
+*.temp

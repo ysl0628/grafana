@@ -13,6 +13,7 @@ import { useGrafana } from 'app/core/context/GrafanaContext';
 import { contextSrv } from 'app/core/core';
 import { useMediaQueryMinWidth } from 'app/core/hooks/useMediaQueryMinWidth';
 import { HOME_NAV_ID } from 'app/core/reducers/navModel';
+import { AiAssistantToggle } from 'app/features/ai-assistant/components/AiAssistantToggle';
 import { useSelector } from 'app/types/store';
 
 import { Branding } from '../../Branding/Branding';
@@ -103,6 +104,7 @@ export const SingleTopBar = memo(function SingleTopBar({
             </Dropdown>
           )}
           <NavToolbarSeparator />
+          {config.featureToggles.aiAssistant && !isSmallScreen && <AiAssistantToggle />}
           {config.featureToggles.extensionSidebar && !isSmallScreen && <ExtensionToolbarItem />}
           {!showToolbarLevel && actions}
           {!contextSrv.user.isSignedIn && <SignInLink />}

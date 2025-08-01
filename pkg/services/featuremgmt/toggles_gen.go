@@ -935,6 +935,9 @@ const (
 	// Enables use of app platform API for folders
 	FlagFoldersAppPlatformAPI = "foldersAppPlatformAPI"
 
+	// FlagAiAssistant
+	// Enable AI Assistant feature with conversational interface
+	FlagAiAssistant = "aiAssistant"
 	// FlagEnablePluginImporter
 	// Set this to true to use the new PluginImporter functionality
 	FlagEnablePluginImporter = "enablePluginImporter"
